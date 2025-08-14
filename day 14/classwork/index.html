@@ -1,0 +1,22 @@
+<!-- 
+The 'for' attribute in <label> connects the label to a specific input field.
+It must match the 'id' of the input element.
+
+This improves accessibility — screen readers can identify which label belongs to which input.
+It also allows users to click the label to focus the input field.
+-->
+<form>
+  <!-- Label for Name -->
+  <label for="userName">Name:</label>
+  <input type="text" id="userName" name="userName"><br><br>
+
+  <!-- Label for Email -->
+  <label for="userEmail">Email:</label>
+  <input type="email" id="userEmail" name="userEmail"><br><br>
+
+  <!-- Label for Password -->
+  <label for="userPassword">Password:</label>
+  <input type="password" id="userPassword" name="userPassword"><br><br>
+
+  <button type="submit">Submit</button>
+</form>
