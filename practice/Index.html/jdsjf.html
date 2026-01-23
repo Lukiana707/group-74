@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title> Pixel Art Creator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f0f0;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .controls {
+      margin-bottom: 20px;
+    }
+
+    input[type="color"] {
+      width: 50px;
+      height: 30px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(30, 16px);
+      gap: 1px;
+      margin: 0 auto;
+      width: max-content;
+    }
+
+    .pixel {
+      width: 16px;
+      height: 16px;
+      background-color: #eee;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 10px;
+    }
+
+    button:hover {
+      background-color: #005ea2;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 Ultimate Pixel Art Creator</h1>
+
+  <div class="controls">
+    <label for="colorPicker"><strong>Choose Color:</strong></label>
+    <input type="color" id="colorPicker" value="#000000">
+    <button onclick="clearGrid()">Clear Canvas</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const colorPicker = document.getElementById('colorPicker');
+
+    function createGrid(size = 900) {
+      for (let i = 0; i < size; i++) {
+        const pixel = document.createElement('div');
+        pixel.className = 'pixel';
+        pixel.onclick = () => {
+          pixel.style.backgroundColor = colorPicker.value;
+        };
+        grid.appendChild(pixel);
+      }
+    }
+
+    function clearGrid() {
+      document.querySelectorAll('.pixel').forEach(p => p.style.backgroundColor = '#eee');
+    }
+
+    createGrid();
+  </script>
+</body>
+</html>
+

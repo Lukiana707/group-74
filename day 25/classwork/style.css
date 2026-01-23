@@ -1,0 +1,53 @@
+
+.styled-text {
+  background-color: lightyellow;
+  color: pink;
+  border: 2px dotted orange;
+  padding: 10px;
+}
+
+
+#first{
+  color: pink;
+}
+
+#second{
+  color: blue;
+}
+
+
+#third{
+  color: yellow;
+}
+
+
+#fourth{
+  color:  orange;
+}
+
+#fifth{
+  color:  rgb(0, 221, 255);
+}
+
+#sixth{
+  color:  red;
+}
+
+#seventh{
+  color:  purple;
+}
+
+.name3 {
+  color: blue;
+
+}
+
+.name2 {
+  color:  brown
+
+}
+
+
+#box {
+  color: yellow;
+}

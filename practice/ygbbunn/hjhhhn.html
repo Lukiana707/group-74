@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crypto Fun Land</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- ======== CSS IN THIS FILE ========= -->
+    <style>
+        body {
+            margin: 0;
+            font-family: "Comic Sans MS", sans-serif;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            color: #333;
+            text-align: center;
+        }
+
+        header {
+            background: #ffffffaa;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        header button {
+            border: none;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        header button:hover {
+            background: #ffe08a;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #fff;
+            text-shadow: 3px 3px #0003;
+        }
+
+        .card {
+            background: #fff;
+            width: 300px;
+            margin: 20px auto;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 20px #0004;
+        }
+
+        #crypto-container .card {
+            width: 280px;
+            display: inline-block;
+            margin: 10px;
+        }
+
+        canvas {
+            background: white;
+            border-radius: 15px;
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- ======== NAV BAR ======== -->
+<header>
+    <button onclick="showPage('home')">Home</button>
+    <button onclick="showPage('prices')">Live Prices</button>
+    <button onclick="showPage('charts')">Charts</button>
+    <button onclick="showPage('game')">Game</button>
+    <button onclick="showPage('login')">Login</button>
+</header>
+
+
+<!-- ===================== HOME PAGE ===================== -->
+<div id="home" class="page">
+    <h1>🌟 Welcome to Crypto Fun Land 🌟</h1>
+    <p>Your kid-friendly crypto world!</p>
+
+    <div class="card">
+        <h2>What can you do?</h2>
+        <p>✔ See real crypto prices</p>
+        <p>✔ Play a guessing game</p>
+        <p>✔ View real charts</p>
+        <p>✔ Use a fun login</p>
+    </div>
+</div>
+
+
+<!-- ===================== LIVE PRICES PAGE ===================== -->
+<div id="prices" class="page hidden">
+    <h1>💰 Live Crypto Prices</h1>
+    <div id="crypto-container">Loading...</div>
+</div>
+
+
+<!-- ===================== CHART PAGE ===================== -->
+<div id="charts" class="page hidden">
+    <h1>📉 Bitcoin Chart (7 days)</h1>
+    <canvas id="chart" width="350" height="200"></canvas>
+</div>
+
+
+<!-- ===================== GAME PAGE ===================== -->
+<div id="game" class="page hidden">
+    <h1>🎮 Guessing Game</h1>
+    <p>Is Bitcoin higher or lower than $50,000?</p>
+
+    <button onclick="guess('higher')">Higher</button>
+    <button onclick="guess('lower')">Lower</button>
+
+    <h2 id="gameresult"></h2>
+</div>
+
+
+<!-- ===================== LOGIN PAGE ===================== -->
+<div id="login" class="page hidden">
+    <h1>🔐 Login</h1>
+
+    <div class="card">
+        <input id="user" placeholder="Username"><br><br>
+        <input id="pass" type="password" placeholder="Password"><br><br>
+        <button onclick="loginUser()">Login</button>
+        <p id="loginmsg"></p>
+    </div>
+</div>
+
+
+
+<!-- ============================= JS ALL-IN-ONE ============================= -->
+<script>
+
+// ----------- PAGE SWITCHING SYSTEM -----------
+function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.getElementById(page).classList.remove('hidden');
+}
+
+
+
+// ----------- LIVE CRYPTO PRICES -----------
+async function loadCrypto() {
+    const container = document.getElementById("crypto-container");
+    container.innerHTML = "Loading...";
+
+    const res = await fetch(
+        "https://api.coingecko.com/api/v3/coins/markets" +
+        "?vs_currency=usd&ids=bitcoin,ethereum,dogecoin,solana,cardano"
+    );
+
+    const data = await res.json();
+    container.innerHTML = "";
+
+    data.forEach(coin => {
+        container.innerHTML += `
+            <div class="card">
+                <h2>${coin.name}</h2>
+                <img src="${coin.image}" width="60">
+                <h3>$${coin.current_price.toLocaleString()}</h3>
+                <p>Rank: ${coin.market_cap_rank}</p>
+            </div>
+        `;
+    });
+}
+
+
+
+// ----------- BITCOIN CHART -----------
+async function loadChart() {
+    const res = await fetch(
+        "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=7"
+    );
+    const data = await res.json();
+
+    const prices = data.prices.map(p => p[1]);
+    const labels = data.prices.map((_, i) => "Day " + (i + 1));
+
+    new Chart(document.getElementById("chart"), {
+        type: "line",
+        data: {
+            labels,
+            datasets: [{
+                label: "Bitcoin (Last 7 Days)",
+                data: prices,
+                borderColor: "yellow",
+                backgroundColor: "#fff4",
+                borderWidth: 3,
+                tension: 0.3
+            }]
+        }
+    });
+}
+
+
+
+// ----------- GUESSING GAME -----------
+async function guess(choice) {
+    const res = await fetch("https://api.coingecko.com/api/v3/coins/bitcoin");
+    const data = await res.json();
+
+    const price = data.market_data.current_price.usd;
+    const result = document.getElementById("gameresult");
+
+    if ((price > 50000 && choice === "higher") ||
+        (price < 50000 && choice === "lower")) {
+        result.innerText = `🎉 Correct! Bitcoin is $${price.toLocaleString()}`;
+    } else {
+        result.innerText = `❌ Nope! Bitcoin is $${price.toLocaleString()}`;
+    }
+}
+
+
+
+// ----------- LOGIN SYSTEM -----------
+function loginUser() {
+    const u = document.getElementById("user").value;
+    const p = document.getElementById("pass").value;
+
+    if (u === "kid" && p === "fun123") {
+        document.getElementById("loginmsg").innerText = "🎉 Login successful!";
+    } else {
+        document.getElementById("loginmsg").innerText = "❌ Try again!";
+    }
+}
+
+
+
+// ----------- LOAD FEATURES ON STARTUP -----------
+loadCrypto();
+loadChart();
+
+</script>
+
+</body>
+</html>

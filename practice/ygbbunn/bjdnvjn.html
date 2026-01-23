@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynamic Crypto Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<style>
+body { font-family: Arial; background:#1e1e1e; color:#fff; margin:0; padding:0; }
+.container { max-width:1000px; margin:auto; padding:20px; }
+h1,h2 { text-align:center; }
+#coin-search { width:80%; padding:10px; margin:10px auto; display:block; border-radius:5px; border:none;}
+.coin-list { display:flex; flex-wrap:wrap; justify-content:center; max-height:200px; overflow-y:auto; margin:10px 0; }
+.coin { background:#333; padding:10px 20px; margin:5px; border-radius:8px; cursor:pointer; flex:0 0 100px; text-align:center;}
+.coin:hover { background:#00b894; }
+#chart { margin-top:20px; }
+input, button { padding:10px; margin:5px; border-radius:5px; border:none; }
+button { background:#00b894; color:white; cursor:pointer; }
+button:hover { background:#019e6a; }
+.trade-panel { margin-top:20px; text-align:center; }
+#balance { margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Dynamic Crypto Dashboard</h1>
+
+<div id="auth">
+<h2>Login / Register</h2>
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
+</div>
+
+<div id="dashboard" style="display:none;">
+<h2 id="selected-coin">Select a coin</h2>
+<input type="text" id="coin-search" placeholder="Search coin..." oninput="filterCoins()">
+<div class="coin-list" id="coin-list"></div>
+
+<div id="chart"></div>
+
+<div class="trade-panel">
+<input type="number" id="amount" placeholder="Amount USD">
+<button onclick="trade('buy')">Buy</button>
+<button onclick="trade('sell')">Sell</button>
+<div id="balance"></div>
+</div>
+
+<button onclick="logout()">Logout</button>
+</div>
+</div>
+
+<script>
+let currentUser = null;
+let coins = [];
+let coinSymbols = {};
+let balances = {};
+let currentCoin = null;
+let chart = null;
+let series = [];
+let ws = null;
+
+// ---------- Auth ----------
+function register(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  if(!email||!password) return alert("Enter email & password");
+  const users=JSON.parse(localStorage.getItem("users")||"[]");
+  if(users.find(u=>u.email===email)) return alert("User exists");
+  users.push({email,password,balance:1000,coins:{}});
+  localStorage.setItem("users",JSON.stringify(users));
+  alert("Registered!");
+}
+
+function login(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  const users=JSON.parse(localStorage.getItem("users")||"[]");
+  const user=users.find(u=>u.email===email && u.password===password);
+  if(!user) return alert("Invalid login");
+  currentUser=user;
+  balances=user.coins || {};
+  document.getElementById("auth").style.display="none";
+  document.getElementById("dashboard").style.display="block";
+  loadCoins();
+}
+
+// ---------- Logout ----------
+function logout(){
+  if(currentUser){
+    const users=JSON.parse(localStorage.getItem("users")||"[]");
+    const index=users.findIndex(u=>u.email===currentUser.email);
+    if(index!==-1){
+      users[index].coins=balances;
+      users[index].balance=currentUser.balance;
+    }
+    localStorage.setItem("users",JSON.stringify(users));
+  }
+  currentUser=null;
+  if(chart) chart.destroy();
+  if(ws) ws.close();
+  document.getElementById("auth").style.display="block";
+  document.getElementById("dashboard").style.display="none";
+  currentCoin=null;
+  series=[];
+}
+
+// ---------- Load all coins from Binance ----------
+async function loadCoins(){
+  const res=await fetch("https://api.binance.com/api/v3/ticker/price");
+  const data=await res.json();
+  coins = data.filter(c=>c.symbol.endsWith("USDT")).map(c=>c.symbol.toLowerCase());
+  coinSymbols = {};
+  coins.forEach(c=>coinSymbols[c]=c.toUpperCase());
+  renderCoinList(coins);
+}
+
+// ---------- Render coin list ----------
+function renderCoinList(list){
+  const listDiv=document.getElementById("coin-list");
+  listDiv.innerHTML="";
+  list.forEach(c=>{
+    const div=document.createElement("div");
+    div.className="coin";
+    div.innerText=c.toUpperCase().replace("USDT","");
+    div.onclick=()=>selectCoin(c);
+    listDiv.appendChild(div);
+  });
+}
+
+// ---------- Filter coins ----------
+function filterCoins(){
+  const query=document.getElementById("coin-search").value.toLowerCase();
+  const filtered=coins.filter(c=>c.includes(query));
+  renderCoinList(filtered);
+}
+
+// ---------- Select Coin ----------
+function selectCoin(coin){
+  currentCoin=coin;
+  document.getElementById("selected-coin").innerText=coinSymbols[coin];
+  series=[];
+  if(chart) chart.destroy();
+  chart=new ApexCharts(document.querySelector("#chart"),{chart:{type:'candlestick',height:350},series:[{data:series}],xaxis:{type:'datetime'}});
+  chart.render();
+  if(ws) ws.close();
+  connectWS();
+  updateBalance();
+}
+
+// ---------- Trade ----------
+async function trade(type){
+  if(!currentCoin) return alert("Select a coin first");
+  const amount=parseFloat(document.getElementById("amount").value);
+  if(!amount||amount<=0) return alert("Enter valid amount");
+  const price=await getCurrentPrice(currentCoin);
+  balances[currentCoin]=balances[currentCoin]||0;
+  if(type==="buy"){
+    if(currentUser.balance<amount) return alert("Not enough USD");
+    currentUser.balance-=amount;
+    balances[currentCoin]+=(amount/price);
+  } else {
+    if(balances[currentCoin]*price<amount) return alert("Not enough coin balance");
+    balances[currentCoin]-=(amount/price);
+    currentUser.balance+=amount;
+  }
+  updateBalance();
+}
+
+// ---------- Update Balance ----------
+async function updateBalance(){
+  if(!currentCoin) return;
+  const price=await getCurrentPrice(currentCoin);
+  balances[currentCoin]=balances[currentCoin]||0;
+  document.getElementById("balance").innerText=
+    `USD: $${currentUser.balance.toFixed(2)} | ${currentCoin.toUpperCase()}: ${balances[currentCoin].toFixed(6)} (~$${(balances[currentCoin]*price).toFixed(2)}) | Price: $${price}`;
+}
+
+// ---------- Binance WebSocket ----------
+function connectWS(){
+  if(!currentCoin) return;
+  ws=new WebSocket(`wss://stream.binance.com:9443/ws/${currentCoin}@kline_1m`);
+  ws.onmessage=(event)=>{
+    const msg=JSON.parse(event.data).k;
+    const candle={x:new Date(msg.t),y:[parseFloat(msg.o),parseFloat(msg.h),parseFloat(msg.l),parseFloat(msg.c)]};
+    series.push(candle);
+    if(series.length>50) series.shift();
+    chart.updateSeries([{data:series}]);
+  }
+}
+
+// ---------- Current Price ----------
+async function getCurrentPrice(coin){
+  const res=await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${coin.toUpperCase()}`);
+  const data=await res.json();
+  return parseFloat(data.price);
+}
+</script>
+</body>
+</html>

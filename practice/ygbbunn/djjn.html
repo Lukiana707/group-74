@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdn.jsdelivr.net/npm/technicalindicators@3.0.11/dist/browser/technicalindicators.js"></script>
+<style>
+body { font-family: Arial,sans-serif; background:#121212; color:#fff; margin:0; padding:0; }
+.container { max-width:1200px; margin:auto; padding:20px; }
+h1,h2 { text-align:center; }
+#coin-search { width:80%; padding:10px; margin:10px auto; display:block; border-radius:5px; border:none; }
+.coin-list { display:flex; flex-wrap:wrap; justify-content:center; max-height:200px; overflow-y:auto; margin:10px 0; }
+.coin { background:#1e1e1e; padding:10px 20px; margin:5px; border-radius:8px; cursor:pointer; flex:0 0 100px; text-align:center; }
+.coin:hover { background:#00b894; }
+#dashboard-panels { display:flex; flex-direction:column; gap:30px; margin-top:20px; }
+.panel { background:#1e1e1e; padding:20px; border-radius:12px; border:2px solid #00b894; box-shadow:0 0 15px rgba(0,184,148,0.5); }
+input, button { padding:10px; margin:5px; border-radius:5px; border:none; }
+button { background:#00b894; color:white; cursor:pointer; }
+button:hover { background:#019e6a; }
+.positive { color:#00ff00; }
+.negative { color:#ff4d4d; }
+.indicator { font-size:12px; margin-top:5px; }
+.indicators-panel { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+.indicators-panel input { width:60px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Crypto Dashboard</h1>
+
+<div id="auth">
+<h2>Login / Register</h2>
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
+</div>
+
+<div id="dashboard" style="display:none;">
+<input type="text" id="coin-search" placeholder="Search coin..." oninput="filterCoins()">
+<div class="coin-list" id="coin-list"></div>
+<div id="dashboard-panels"></div>
+<button onclick="logout()">Logout</button>
+</div>
+</div>
+
+<script>
+let currentUser=null;
+let coins=[], coinSymbols={}, balances={}, panels={}, wsConnections={};
+let indicatorParams = {emaShort:9, emaLong:20, rsiPeriod:14, macdFast:12, macdSlow:26, macdSignal:9, bbPeriod:20, bbStd:2};
+let lastSpoken={};
+
+// ---------- Auth ----------
+function register(){ const email=document.getElementById("email").value; const password=document.getElementById("password").value; if(!email||!password)return alert("Enter email & password"); const users=JSON.parse(localStorage.getItem("users")||"[]"); if(users.find(u=>u.email===email)) return alert("User exists"); users.push({email,password,balance:1000,coins:{}}); localStorage.setItem("users",JSON.stringify(users)); alert("Registered!");}
+function login(){ const email=document.getElementById("email").value; const password=document.getElementById("password").value; const users=JSON.parse(localStorage.getItem("users")||"[]"); const user=users.find(u=>u.email===email && u.password===password); if(!user) return alert("Invalid login"); currentUser=user; balances=user.coins||{}; document.getElementById("auth").style.display="none"; document.getElementById("dashboard").style.display="block"; loadCoins();}
+function logout(){ if(currentUser){ const users=JSON.parse(localStorage.getItem("users")||"[]"); const index=users.findIndex(u=>u.email===currentUser.email); if(index!==-1){ users[index].coins=balances; users[index].balance=currentUser.balance; } localStorage.setItem("users",JSON.stringify(users));} currentUser=null; for(const w of Object.values(wsConnections)) w.close(); panels={}; wsConnections={}; document.getElementById("dashboard-panels").innerHTML=""; document.getElementById("auth").style.display="block"; document.getElementById("dashboard").style.display="none";}
+
+// ---------- Load coins ----------
+async function loadCoins(){ const res=await fetch("https://api.binance.com/api/v3/ticker/price"); const data=await res.json(); coins=data.filter(c=>c.symbol.endsWith("USDT")).map(c=>c.symbol.toLowerCase()); coins.forEach(c=>coinSymbols[c]=c.toUpperCase()); renderCoinList(coins);}
+function renderCoinList(list){ const listDiv=document.getElementById("coin-list"); listDiv.innerHTML=""; list.forEach(c=>{ const div=document.createElement("div"); div.className="coin"; div.innerText=c.replace("usdt","").toUpperCase(); div.onclick=()=>addCoinPanel(c); listDiv.appendChild(div);});}
+function filterCoins(){ const query=document.getElementById("coin-search").value.toLowerCase(); renderCoinList(coins.filter(c=>c.includes(query)));}
+
+// ---------- Add coin panel ----------
+function addCoinPanel(coin){
+  if(panels[coin]) return;
+  const container=document.getElementById("dashboard-panels");
+  const panel=document.createElement("div"); panel.className="panel"; panel.id="panel-"+coin;
+  panel.innerHTML=`
+    <h3>${coinSymbols[coin]}</h3>
+    <div class="indicators-panel">
+      EMA Short:<input type="number" id="emaShort-${coin}" value="${indicatorParams.emaShort}" onchange="updateParams('${coin}')">
+      EMA Long:<input type="number" id="emaLong-${coin}" value="${indicatorParams.emaLong}" onchange="updateParams('${coin}')">
+      RSI:<input type="number" id="rsiPeriod-${coin}" value="${indicatorParams.rsiPeriod}" onchange="updateParams('${coin}')">
+      MACD Fast:<input type="number" id="macdFast-${coin}" value="${indicatorParams.macdFast}" onchange="updateParams('${coin}')">
+      MACD Slow:<input type="number" id="macdSlow-${coin}" value="${indicatorParams.macdSlow}" onchange="updateParams('${coin}')">
+      MACD Signal:<input type="number" id="macdSignal-${coin}" value="${indicatorParams.macdSignal}" onchange="updateParams('${coin}')">
+      BB Period:<input type="number" id="bbPeriod-${coin}" value="${indicatorParams.bbPeriod}" onchange="updateParams('${coin}')">
+      BB Std:<input type="number" id="bbStd-${coin}" value="${indicatorParams.bbStd}" step="0.1" onchange="updateParams('${coin}')">
+    </div>
+    <div id="chart-${coin}" style="height:300px;"></div>
+    <input type="number" id="amount-${coin}" placeholder="Amount USD">
+    <button onclick="tradePanel('${coin}','buy')">Buy</button>
+    <button onclick="tradePanel('${coin}','sell')">Sell</button>
+    <div id="balance-${coin}"></div>
+    <div id="indicator-${coin}" class="indicator"></div>
+  `;
+  container.appendChild(panel);
+
+  panels[coin]={series:[], chart:new ApexCharts(document.querySelector("#chart-"+coin),{
+    chart:{type:'candlestick', height:300, toolbar:{show:true}, animations:{enabled:false}},
+    series:[{data:[]}],
+    xaxis:{type:'datetime'},
+    annotations:{yaxis:[], points:[]}
+  })};
+
+  panels[coin].chart.render();
+  if(!balances[coin]) balances[coin]=0;
+  connectWSPanel(coin);
+  updateBalancePanel(coin);
+}
+
+// ---------- Update params ----------
+function updateParams(coin){ 
+  indicatorParams.emaShort=parseInt(document.getElementById(`emaShort-${coin}`).value)||9; 
+  indicatorParams.emaLong=parseInt(document.getElementById(`emaLong-${coin}`).value)||20; 
+  indicatorParams.rsiPeriod=parseInt(document.getElementById(`rsiPeriod-${coin}`).value)||14; 
+  indicatorParams.macdFast=parseInt(document.getElementById(`macdFast-${coin}`).value)||12; 
+  indicatorParams.macdSlow=parseInt(document.getElementById(`macdSlow-${coin}`).value)||26; 
+  indicatorParams.macdSignal=parseInt(document.getElementById(`macdSignal-${coin}`).value)||9; 
+  indicatorParams.bbPeriod=parseInt(document.getElementById(`bbPeriod-${coin}`).value)||20; 
+  indicatorParams.bbStd=parseFloat(document.getElementById(`bbStd-${coin}`).value)||2;
+}
+
+// ---------- WebSocket ----------
+function connectWSPanel(coin){
+  wsConnections[coin]=new WebSocket(`wss://stream.binance.com:9443/ws/${coin}@kline_1m`);
+  wsConnections[coin].onmessage=(event)=>{
+    const msg=JSON.parse(event.data).k;
+    const candle={x:new Date(msg.t),y:[parseFloat(msg.o),parseFloat(msg.h),parseFloat(msg.l),parseFloat(msg.c)]};
+    panels[coin].series.push(candle);
+    if(panels[coin].series.length>200) panels[coin].series.shift();
+    updateCharts(coin);
+    updateBalancePanel(coin);
+    checkSignals(coin);
+  }
+}
+
+// ---------- Update charts with EMA & Bollinger Bands ----------
+function updateCharts(coin){
+  const s=panels[coin].series;
+  if(s.length<2) return;
+
+  const closes=s.map(c=>c.y[3]);
+  const emaShort=technicalindicators.EMA.calculate({period:indicatorParams.emaShort, values:closes});
+  const emaLong=technicalindicators.EMA.calculate({period:indicatorParams.emaLong, values:closes});
+  const bb=technicalindicators.BollingerBands.calculate({period:indicatorParams.bbPeriod, stdDev:indicatorParams.bbStd, values:closes});
+
+  const candlestickData=s.map((c,i)=>{
+    const extra={};
+    if(i>=indicatorParams.emaShort) extra.emaShort=emaShort[i-indicatorParams.emaShort];
+    if(i>=indicatorParams.emaLong) extra.emaLong=emaLong[i-indicatorParams.emaLong];
+    if(i>=indicatorParams.bbPeriod-1) extra.bbUpper=bb[i-indicatorParams.bbPeriod+1].upper, extra.bbLower=bb[i-indicatorParams.bbPeriod+1].lower, extra.bbMiddle=bb[i-indicatorParams.bbPeriod+1].middle;
+    return {x:c.x,y:c.y,...extra};
+  });
+
+  panels[coin].chart.updateSeries([{data:candlestickData}]);
+
+  // Update lines
+  const seriesLines=[];
+  if(emaShort.length>0) seriesLines.push({name:"EMA Short", type:"line", data:emaShort.map((v,i)=>[s[i+indicatorParams.emaShort-1].x,v]), color:"#00ff00"});
+  if(emaLong.length>0) seriesLines.push({name:"EMA Long", type:"line", data:emaLong.map((v,i)=>[s[i+indicatorParams.emaLong-1].x,v]), color:"#ff9900"});
+  if(bb.length>0){
+    seriesLines.push({name:"BB Upper", type:"line", data:bb.map((v,i)=>[s[i+indicatorParams.bbPeriod-1].x,v.upper]), color:"#9999ff"});
+    seriesLines.push({name:"BB Middle", type:"line", data:bb.map((v,i)=>[s[i+indicatorParams.bbPeriod-1].x,v.middle]), color:"#6666ff"});
+    seriesLines.push({name:"BB Lower", type:"line", data:bb.map((v,i)=>[s[i+indicatorParams.bbPeriod-1].x,v.lower]), color:"#9999ff"});
+  }
+
+  // Clear old annotations
+  panels[coin].chart.updateOptions({annotations:{yaxis:[], points:[]}});
+
+  // Re-add candlestick and overlays
+  panels[coin].chart.updateSeries([{data:s.map(c=>({x:c.x,y:c.y}))}, ...seriesLines]);
+}
+
+// ---------- Trade ----------
+async function tradePanel(coin,type){
+  const amount=parseFloat(document.getElementById("amount-"+coin).value);
+  if(!amount||amount<=0) return alert("Enter valid amount");
+  const price=await getCurrentPrice(coin);
+  if(type==="buy"){ if(currentUser.balance<amount)return alert("Not enough USD"); currentUser.balance-=amount; balances[coin]+=(amount/price);}
+  else {if(balances[coin]*price<amount)return alert("Not enough coin balance"); balances[coin]-=(amount/price); currentUser.balance+=amount;}
+  updateBalancePanel(coin);
+}
+
+// ---------- Update balance ----------
+async function updateBalancePanel(coin){
+  const price=await getCurrentPrice(coin);
+  const changeClass=await get24hChangeClass(coin);
+  document.getElementById("balance-"+coin).innerHTML=`USD: $${currentUser.balance.toFixed(2)} | ${coinSymbols[coin]}: ${balances[coin].toFixed(6)} (~$${(balances[coin]*price).toFixed(2)}) | Price: <span class="${changeClass}">$${price}</span>`;
+}
+
+// ---------- Price & 24h change ----------
+async function getCurrentPrice(coin){ const res=await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${coin.toUpperCase()}`); const data=await res.json(); return parseFloat(data.price);}
+async function get24hChangeClass(coin){ const res=await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${coin.toUpperCase()}`); const data=await res.json(); return parseFloat(data.priceChangePercent)>=0?'positive':'negative';}
+
+// ---------- Signals & chart markers ----------
+function checkSignals(coin){
+  const s=panels[coin].series;
+  if(s.length<indicatorParams.emaLong) return;
+  const closes=s.map(c=>c.y[3]);
+  const emaShortArr=technicalindicators.EMA.calculate({period:indicatorParams.emaShort, values:closes});
+  const emaLongArr=technicalindicators.EMA.calculate({period:indicatorParams.emaLong, values:closes});
+  const lastEmaShort=emaShortArr[emaShortArr.length-1];
+  const lastEmaLong=emaLongArr[emaLongArr.length-1];
+
+  const macdVals=technicalindicators.MACD.calculate({fastPeriod:indicatorParams.macdFast, slowPeriod:indicatorParams.macdSlow, signalPeriod:indicatorParams.macdSignal, values:closes, SimpleMAOscillator:false, SimpleMASignal:false});
+  const lastMacd=macdVals[macdVals.length-1];
+
+  let signal="";
+  if(lastEmaShort>lastEmaLong && lastMacd.MACD>lastMacd.signal) signal="BUY";
+  else if(lastEmaShort<lastEmaLong && lastMacd.MACD<lastMacd.signal) signal="SELL";
+
+  document.getElementById(`indicator-${coin}`).innerText=`Signal: ${signal} | EMA${indicatorParams.emaShort}:${lastEmaShort.toFixed(2)} EMA${indicatorParams.emaLong}:${lastEmaLong.toFixed(2)} | MACD:${lastMacd.MACD.toFixed(2)}`;
+
+  if(signal){
+    const lastCandle=s[s.length-1];
+    panels[coin].chart.addPointAnnotation({
+      x:lastCandle.x,
+      y:lastCandle.y[3],
+      marker:{size:8, fillColor:signal==="BUY"?"#00ff00":"#ff4d4d", strokeColor:"#fff", shape:"arrowUp", offsetY:signal==="BUY"?5:-5, rotate:signal==="BUY"?0:180},
+      label:{text:signal, style:{color:"#fff", background:"#000"}}
+    });
+    speak(`${signal} ${coinSymbols[coin]} now`);
+  }
+}
+
+function speak(text){ if(lastSpoken[text] && Date.now()-lastSpoken[text]<60000) return; const synth=new SpeechSynthesisUtterance(text); window.speechSynthesis.speak(synth); lastSpoken[text]=Date.now();}
+</script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Memory Match Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f4f8;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 80px);
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .card {
+      width: 80px;
+      height: 80px;
+      background-color: #0078D4;
+      color: white;
+      font-size: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .matched {
+      background-color: #28a745;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 Memory Match</h1>
+  <div class="grid" id="gameGrid"></div>
+
+  <script>
+    const emojis = ['🍎','🍌','🍇','🍓','🍎','🍌','🍇','🍓'];
+    const shuffled = emojis.sort(() => 0.5 - Math.random());
+    const grid = document.getElementById('gameGrid');
+    let first = null, second = null;
+
+    shuffled.forEach((emoji, index) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.index = index;
+      card.textContent = '';
+      card.onclick = () => flipCard(card, emoji);
+      grid.appendChild(card);
+    });
+
+    function flipCard(card, emoji) {
+      if (card.classList.contains('matched') || card.textContent) return;
+      card.textContent = emoji;
+
+      if (!first) {
+        first = card;
+      } else {
+        second = card;
+        if (first.textContent === second.textContent) {
+          first.classList.add('matched');
+          second.classList.add('matched');
+        } else {
+          setTimeout(() => {
+            first.textContent = '';
+            second.textContent = '';
+          }, 800);
+        }
+        first = null;
+        second = null;
+      }
+    }
+  </script>
+</body>
+</html>

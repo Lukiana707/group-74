@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bunny Forest Obby</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb') no-repeat center center;
+      background-size: cover;
+      font-family: 'Comic Sans MS', cursive;
+    }
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+    .bunny {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      font-size: 32px;
+      text-align: center;
+      line-height: 40px;
+    }
+    .platform, .lava, .goal {
+      position: absolute;
+      border-radius: 8px;
+    }
+    .platform { background-color: #8fbc8f; }
+    .lava { background-color: #ff4500; box-shadow: 0 0 10px red; }
+    .goal { background-color: gold; box-shadow: 0 0 10px yellow; }
+    #message {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 28px;
+      color: white;
+      background: rgba(0,0,0,0.7);
+      padding: 20px;
+      border-radius: 12px;
+      display: none;
+      z-index: 10;
+    }
+    #restartBtn, #levelCounter {
+      position: absolute;
+      top: 10px;
+      font-size: 16px;
+      padding: 10px 20px;
+      background-color: #ff69b4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      z-index: 10;
+    }
+    #restartBtn { right: 10px; cursor: pointer; }
+    #levelCounter { left: 10px; background-color: rgba(0,0,0,0.5); }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="bunny" class="bunny">🐰</div>
+    <div id="message">💥 You exploded! Restarting...</div>
+    <button id="restartBtn">🔁 Restart</button>
+    <div id="levelCounter">Level 1</div>
+  </div>
+
+  <script>
+    const bunny = document.getElementById('bunny');
+    const message = document.getElementById('message');
+    const restartBtn = document.getElementById('restartBtn');
+    const levelCounter = document.getElementById('levelCounter');
+    const game = document.getElementById('game');
+
+    let x = 100, y = 460, vx = 0, vy = 0;
+    const gravity = 0.5;
+    const jumpPower = -10;
+    let onGround = false;
+    let currentLevel = 0;
+
+    const levels = [
+      {
+        platforms: [
+          { left: 100, top: 500, width: 200 },
+          { left: 350, top: 450, width: 150 },
+          { left: 550, top: 400, width: 100 },
+          { left: 700, top: 350, width: 120 }
+        ],
+        lava: [
+          { left: 300, top: 520, width: 100 },
+          { left: 600, top: 520, width: 100 }
+        ],
+        goal: { left: 850, top: 310 }
+      },
+      {
+        platforms: [
+          { left: 50, top: 500, width: 150 },
+          { left: 250, top: 450, width: 100 },
+          { left: 400, top: 400, width: 100 },
+          { left: 550, top: 350, width: 100 },
+          { left: 700, top: 300, width: 100 }
+        ],
+        lava: [
+          { left: 200, top: 520, width: 80 },
+          { left: 500, top: 520, width: 80 },
+          { left: 650, top: 520, width: 80 }
+        ],
+        goal: { left: 850, top: 260 }
+      },
+      {
+        platforms: [
+          { left: 100, top: 500, width: 100 },
+          { left: 250, top: 450, width: 80 },
+          { left: 350, top: 400, width: 80 },
+          { left: 450, top: 350, width: 80 },
+          { left: 550, top: 300, width: 80 },
+          { left: 650, top: 250, width: 80 },
+          { left: 750, top: 200, width: 80 }
+        ],
+        lava: [
+          { left: 150, top: 520, width: 60 },
+          { left: 300, top: 520, width: 60 },
+          { left: 450, top: 520, width: 60 },
+          { left: 600, top: 520, width: 60 },
+          { left: 750, top: 520, width: 60 }
+        ],
+        goal: { left: 850, top: 160 }
+      }
+    ];
+
+    function loadLevel(index) {
+      game.querySelectorAll('.platform, .lava, .goal').forEach(el => el.remove());
+      const level = levels[index];
+      level.platforms.forEach(p => {
+        const el = document.createElement('div');
+        el.className = 'platform';
+        Object.assign(el.style, {
+          left: p.left + 'px',
+          top: p.top + 'px',
+          width: p.width + 'px',
+          height: '20px'
+        });
+        game.appendChild(el);
+      });
+      level.lava.forEach(l => {
+        const el = document.createElement('div');
+        el.className = 'lava';
+        Object.assign(el.style, {
+          left: l.left + 'px',
+          top: l.top + 'px',
+          width: l.width + 'px',
+          height: '20px'
+        });
+        game.appendChild(el);
+      });
+      const goal = document.createElement('div');
+      goal.className = 'goal';
+      Object.assign(goal.style, {
+        left: level.goal.left + 'px',
+        top: level.goal.top + 'px',
+        width: '40px',
+        height: '40px'
+      });
+      game.appendChild(goal);
+      levelCounter.textContent = `Level ${index + 1}`;
+      resetGame();
+    }
+
+    function resetGame() {
+      x = 100;
+      y = 460;
+      vx = 0;
+      vy = 0;
+      message.style.display = 'none';
+    }
+
+    restartBtn.onclick = resetGame;
+
+    function explodeAndRestart() {
+      message.textContent = "💥 You exploded! Restarting...";
+      message.style.display = 'block';
+      setTimeout(resetGame, 1500);
+    }
+
+    function nextLevel() {
+      message.textContent = "✅ Level Complete! Loading next level...";
+      message.style.display = 'block';
+      setTimeout(() => {
+        currentLevel++;
+        if (currentLevel < levels.length) {
+          loadLevel(currentLevel);
+        } else {
+          message.textContent = "🎉 You completed all 3 levels!";
+        }
+      }, 1500);
+    }
+
+    function update() {}
+      vy += gravity;
+      x += vx;
+      y += vy;
+
+      if (y > window.innerHeight - 40) {
+        explodeAndRestart();
+        return;
+      }
+
+      onGround = false;
+      game.querySelectorAll('.platform').forEach(p => {
+        const px = p.offsetLeft;
+        const py = p.offsetTop;
+        const pw = p.offsetWidth;
+        const ph = p.offsetHeight;
+        if (x + 40 > px && x < px + pw && y + 40 > py && y + 40 < py + ph + 10 && vy >= 0) {
+          y = py - 40;
+          vy = 0;
+          onGround = true;
+        }
+      });

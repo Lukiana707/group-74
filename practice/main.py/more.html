@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Daily Journal</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fffbe6;
+      padding: 40px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    textarea {
+      width: 80%;
+      height: 200px;
+      padding: 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      resize: none;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #f39c12;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #d68910;
+    }
+
+    #saved {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Daily Journal 📔</h1>
+  <textarea id="journalEntry" placeholder="Write your thoughts here..."></textarea>
+  <br>
+  <button onclick="saveEntry()">Save Entry</button>
+  <div id="saved"></div>
+
+  <script>
+    function saveEntry() {
+      const entry = document.getElementById('journalEntry').value.trim();
+      if (entry) {
+        localStorage.setItem('journal', entry);
+        document.getElementById('saved').textContent = "Your entry has been saved!";
+      } else {
+        document.getElementById('saved').textContent = "Please write something first.";
+      }
+    }
+
+    window.onload = function() {
+      const saved = localStorage.getItem('journal');
+      if (saved) {
+        document.getElementById('journalEntry').value = saved;
+        document.getElementById('saved').textContent = "Loaded your last entry.";
+      }
+    };
+  </script>
+</body>
+</html>

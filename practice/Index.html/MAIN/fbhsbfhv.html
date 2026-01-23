@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Lucky's Archery Game</title>
+<style>
+  body { margin: 0; background: #87ceeb; font-family: Arial; }
+  #game { width: 800px; height: 500px; margin: auto; background: #4caf50; position: relative; border: 4px solid black; overflow: hidden; }
+  #player { width: 32px; height: 32px; position: absolute; left: 50px; top: 220px; background: url('https://i.imgur.com/CJvZQTP.png'); background-size: cover; }
+  .arrow { width: 10px; height: 4px; position: absolute; background: brown; }
+  .target { width: 32px; height: 32px; position: absolute; background: red; border-radius: 50%; }
+  #score { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; }
+</style>
+</head>
+<body>
+
+<div id="game">
+  <div id="player"></div>
+  <div id="score">Score: 0</div>
+</div>
+
+<script>
+let game = document.getElementById("game");
+let player = document.getElementById("player");
+let scoreDisplay = document.getElementById("score");
+let arrows = [];
+let targets = [];
+let score = 0;
+
+// Spawn targets
+for(let i=0; i<5; i++){
+  let t = document.createElement("div");
+  t.className = "target";
+  t.style.left = (500 + i*60) + "px";
+  t.style.top = (50 + i*80) + "px";
+  game.appendChild(t);
+  targets.push(t);
+}
+
+// Move player
+document.addEventListener("keydown", (e)=>{
+  let x = parseInt(player.style.left);
+  let y = parseInt(player.style.top);
+
+  if(e.key === "ArrowUp" && y>0) y -= 10;
+  if(e.key === "ArrowDown" && y<468) y += 10;
+  player.style.top = y + "px";
+
+  if(e.key === " ") shootArrow();
+});
+
+function shootArrow(){
+  let a = document.createElement("div");
+  a.className = "arrow";
+  a.style.left = parseInt(player.style.left)+32 + "px";
+  a.style.top = parseInt(player.style.top)+14 + "px";
+  game.appendChild(a);
+  arrows.push(a);
+}
+
+// Game loop
+function loop(){
+  arrows.forEach((a, i)=>{
+    let x = parseInt(a.style.left);
+    a.style.left = x + 10 + "px";
+
+    // Check collision with targets
+    targets.forEach((t, j)=>{
+      let tx = parseInt(t.style.left);
+      let ty = parseInt(t.style.top);
+      let ax = parseInt(a.style.left);
+      let ay = parseInt(a.style.top);
+
+      if(ax > tx && ax < tx+32 && ay > ty && ay < ty+32){
+        game.removeChild(t);
+        targets.splice(j,1);
+        game.removeChild(a);
+        arrows.splice(i,1);
+        score += 10;
+        scoreDisplay.innerHTML = "Score: "+score;
+      }
+    });
+
+    if(parseInt(a.style.left) > 800){
+      game.removeChild(a);
+      arrows.splice(i,1);
+    }
+  });
+
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>

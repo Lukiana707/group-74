@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bunny Mood Tracker</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background-color: #fff0f5;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #ff69b4;
+      font-size: 36px;
+    }
+
+    select {
+      padding: 10px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: 2px solid #ffb6c1;
+      background-color: #fff;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background-color: #ffb6c1;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #ff69b4;
+    }
+
+    #bunny {
+      font-size: 80px;
+      margin-top: 30px;
+      transition: transform 0.3s ease;
+    }
+
+    #message {
+      font-size: 20px;
+      color: #333;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐰 Bunny Mood Tracker</h1>
+  <select id="moodSelect">
+    <option value="">How are you feeling?</option>
+    <option value="happy">😊 Happy</option>
+    <option value="sad">😢 Sad</option>
+    <option value="excited">🤩 Excited</option>
+    <option value="tired">😴 Tired</option>
+    <option value="angry">😠 Angry</option>
+  </select>
+  <br>
+  <button onclick="showMood()">Tell Bunny</button>
+
+  <div id="bunny">🐰</div>
+  <div id="message"></div>
+
+  <script>
+    function showMood() {
+      const mood = document.getElementById('moodSelect').value;
+      const bunny = document.getElementById('bunny');
+      const message = document.getElementById('message');
+
+      switch (mood) {
+        case 'happy':
+          bunny.textContent = '🐰💖';
+          message.textContent = "Yay! Bunny is happy you're happy!";
+          break;
+        case 'sad':
+          bunny.textContent = '🐰💧';
+          message.textContent = "Aww... Bunny sends you a hug.";
+          break;
+        case 'excited':
+          bunny.textContent = '🐰🎉';
+          message.textContent = "Woohoo! Bunny is bouncing with joy!";
+          break;
+        case 'tired':
+          bunny.textContent = '🐰😴';
+          message.textContent = "Bunny says: Nap time is sacred.";
+          break;
+        case 'angry':
+          bunny.textContent = '🐰🔥';
+          message.textContent = "Grrr! Bunny will help you calm down.";
+          break;
+        default:
+          bunny.textContent = '🐰';
+          message.textContent = "";
+      }
+    }
+  </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Meet Sunny the Seal</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive;
+      background-color: #e0f7fa;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #0077b6;
+    }
+
+    #seal {
+      font-size: 80px;
+      margin-top: 20px;
+    }
+
+    #bio {
+      font-size: 18px;
+      color: #333;
+      margin-top: 10px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #00b4d8;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background-color: #0077b6;
+    }
+  </style>
+</head>
+<body>
+  <h1>🦭 Meet Sunny the Seal</h1>
+  <div id="seal">🦭</div>
+  <div id="bio">
+    Sunny is a cheerful little seal who loves swimming, collecting shiny pebbles, and making new friends.  
+    Today, Sunny is planning to visit Bunny’s cozy cottage for tea and stories!
+  </div>
+  <button onclick="goToBunny()">Go to Bunny’s House</button>
+
+  <script>
+    function goToBunny() {
+      window.location.href = "bunny-house.html"; 
+    }
+  </script>
+</body>
+</html>

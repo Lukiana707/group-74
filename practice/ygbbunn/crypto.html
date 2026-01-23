@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Crypto Trading Simulator</title>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdn.jsdelivr.net/npm/technicalindicators@3.0.1/lib/browser.js"></script>
+<style>
+body { font-family: Arial; background:#121212; color:#fff; margin:0; padding:0; }
+.container { max-width:1200px; margin:auto; padding:20px; }
+h1,h2 { text-align:center; }
+#coin-search { width:80%; padding:10px; margin:10px auto; display:block; border-radius:5px; border:none;}
+.coin-list { display:flex; flex-wrap:wrap; justify-content:center; max-height:200px; overflow-y:auto; margin:10px 0; }
+.coin { background:#1e1e1e; padding:10px 20px; margin:5px; border-radius:8px; cursor:pointer; flex:0 0 100px; text-align:center;}
+.coin:hover { background:#00b894; }
+#dashboard-panels { display:flex; flex-direction:column; gap:30px; margin-top:20px; }
+.panel { background:#1e1e1e; padding:20px; border-radius:12px; border:2px solid #00b894; box-shadow:0 0 15px rgba(0,184,148,0.5); }
+input, button, select { padding:10px; margin:5px; border-radius:5px; border:none; }
+button { background:#00b894; color:white; cursor:pointer; }
+button:hover { background:#019e6a; }
+.positive { color:#00ff00; }
+.negative { color:#ff4d4d; }
+#summary { background:#1e1e1e; padding:15px; border-radius:10px; margin-bottom:20px; text-align:center; }
+#trade-history { background:#1e1e1e; padding:15px; border-radius:10px; max-height:200px; overflow-y:auto; margin-top:20px; }
+.trade-entry { display:flex; justify-content:space-between; margin:5px 0; border-bottom:1px solid #333; padding-bottom:5px; }
+.indicator-toggle { margin:5px; cursor:pointer; padding:5px 10px; border-radius:5px; border:none; background:#00b894; }
+.indicator-toggle.active { background:#019e6a; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Advanced Crypto Trading Simulator</h1>
+
+<div id="auth">
+<h2>Login / Register</h2>
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
+</div>
+
+<div id="dashboard" style="display:none;">
+<div id="summary">Total Balance: $0.00 | Portfolio Value: $0.00 | Total Profit/Loss: $0.00</div>
+<input type="text" id="coin-search" placeholder="Search coin..." oninput="filterCoins()">
+<div class="coin-list" id="coin-list"></div>
+<div id="dashboard-panels"></div>
+<div id="trade-history"><h3>Trade History</h3></div>
+<button onclick="logout()">Logout</button>
+</div>
+</div>
+
+<script>
+// ------------------ Variables ------------------
+let currentUser=null;
+let coins=[], coinSymbols={}, balances={}, panels={}, wsConnections={}, tradeHistory=[];
+let indicators = ['SMA','EMA','MACD','Bollinger','RSI','Stochastic','CCI','OBV','ATR'];
+let activeIndicators = {}; // track which indicators are active per coin
+
+// ------------------ Auth ------------------
+function register(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  if(!email||!password) return alert("Enter email & password");
+  const users=JSON.parse(localStorage.getItem("users")||"[]");
+  if(users.find(u=>u.email===email)) return alert("User exists");
+  users.push({email,password,balance:1000,coins:{}, trades:[]});
+  localStorage.setItem("users",JSON.stringify(users));
+  alert("Registered!");
+}
+
+function login(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  const users=JSON.parse(localStorage.getItem("users")||"[]");
+  const user=users.find(u=>u.email===email && u.password===password);
+  if(!user) return alert("Invalid login");
+  currentUser=user;
+  balances=user.coins || {};
+  tradeHistory = user.trades || [];
+  document.getElementById("auth").style.display="none";
+  document.getElementById("dashboard").style.display="block";
+  loadCoins();
+  renderTradeHistory();
+  updateSummary();
+}
+
+function logout(){
+  if(currentUser){
+    const users=JSON.parse(localStorage.getItem("users")||"[]");
+    const index=users.findIndex(u=>u.email===currentUser.email);
+    if(index!==-1){
+      users[index].coins=balances;
+      users[index].balance=currentUser.balance;
+      users[index].trades=tradeHistory;
+    }
+    localStorage.setItem("users",JSON.stringify(users));
+  }
+  currentUser=null;
+  for(const w of Object.values(wsConnections)){ w.close(); }
+  panels={}; wsConnections={}; tradeHistory=[]; activeIndicators={};
+  document.getElementById("dashboard-panels").innerHTML="";
+  document.getElementById("trade-history").innerHTML="<h3>Trade History</h3>";
+  document.getElementById("auth").style.display="block";
+  document.getElementById("dashboard").style.display="none";
+}
+
+// ------------------ Load coins ------------------
+async function loadCoins(){
+  const res=await fetch("https://api.binance.com/api/v3/ticker/price");
+  const data=await res.json();
+  coins = data.filter(c=>c.symbol.endsWith("USDT")).map(c=>c.symbol.toLowerCase());
+  coinSymbols = {};
+  coins.forEach(c=>coinSymbols[c]=c.toUpperCase());
+  renderCoinList(coins);
+}
+
+// ------------------ Render coin list ------------------
+function renderCoinList(list){
+  const listDiv=document.getElementById("coin-list");
+  listDiv.innerHTML="";
+  list.forEach(c=>{
+    const div=document.createElement("div");
+    div.className="coin";
+    div.innerText=c.replace("usdt","").toUpperCase();
+    div.onclick=()=>addCoinPanel(c);
+    listDiv.appendChild(div);
+  });
+}
+
+// ------------------ Filter coins ------------------
+function filterCoins(){
+  const query=document.getElementById("coin-search").value.toLowerCase();
+  const filtered=coins.filter(c=>c.includes(query));
+  renderCoinList(filtered);
+}
+
+// ------------------ Add coin panel ------------------
+function addCoinPanel(coin){
+  if(panels[coin]) return;
+  activeIndicators[coin] = [...indicators]; // all indicators active by default
+  const container=document.getElementById("dashboard-panels");
+  const panel=document.createElement("div"); panel.className="panel"; panel.id="panel-"+coin;
+
+  let indicatorButtons = indicators.map(ind=>`<button class="indicator-toggle active" id="toggle-${coin}-${ind}" onclick="toggleIndicator('${coin}','${ind}')">${ind}</button>`).join(' ');
+
+  panel.innerHTML=`
+    <h3>${coinSymbols[coin]}</h3>
+    ${indicatorButtons}
+    <div id="chart-${coin}" style="height:400px;"></div>
+    <input type="number" id="amount-${coin}" placeholder="Amount USD">
+    <button onclick="tradePanel('${coin}','buy')">Buy</button>
+    <button onclick="tradePanel('${coin}','sell')">Sell</button>
+    <div id="balance-${coin}"></div>
+  `;
+  container.appendChild(panel);
+
+  panels[coin]={series:[], chart:new ApexCharts(document.querySelector("#chart-"+coin),{
+    chart:{type:'candlestick', height:400, toolbar:{show:true, tools:{download:true, selection:true, zoom:true, zoomin:true, zoomout:true, pan:true, reset:true}}},
+    series:[{data:[]}],
+    xaxis:{type:'datetime'}
+  })};
+  panels[coin].chart.render();
+  if(!balances[coin]) balances[coin]=0;
+  connectWSPanel(coin);
+  updateBalancePanel(coin);
+}
+
+// ------------------ Toggle indicators ------------------
+function toggleIndicator(coin,ind){
+  const index = activeIndicators[coin].indexOf(ind);
+  const btn = document.getElementById(`toggle-${coin}-${ind}`);
+  if(index > -1){
+    activeIndicators[coin].splice(index,1);
+    btn.classList.remove('active');
+  } else {
+    activeIndicators[coin].push(ind);
+    btn.classList.add('active');
+  }
+}
+
+// ------------------ WebSocket for panel ------------------
+function connectWSPanel(coin){
+  wsConnections[coin]=new WebSocket(`wss://stream.binance.com:9443/ws/${coin}@kline_1m`);
+  wsConnections[coin].onmessage=(event)=>{
+    const msg=JSON.parse(event.data).k;
+    const candle={x:new Date(msg.t),y:[parseFloat(msg.o),parseFloat(msg.h),parseFloat(msg.l),parseFloat(msg.c)], volume: parseFloat(msg.v)};
+    panels[coin].series.push(candle);
+    if(panels[coin].series.length>200) panels[coin].series.shift();
+    updateIndicators(coin);
+    panels[coin].chart.updateSeries([{data:panels[coin].series}]);
+    updateBalancePanel(coin);
+  }
+}
+
+// ------------------ Calculate & update indicators ------------------
+function updateIndicators(coin){
+  const data = panels[coin].series;
+  const closes = data.map(d=>d.y[3]);
+  const highs = data.map(d=>d.y[1]);
+  const lows = data.map(d=>d.y[2]);
+  const volumes = data.map(d=>d.volume);
+
+  let overlays = [];
+
+  if(activeIndicators[coin].includes('SMA')){
+    const sma = technicalindicators.SMA.calculate({period:14, values:closes});
+    overlays.push({name:'SMA', type:'line', data:sma.map((v,i)=>({x:data[i+data.length-sma.length].x, y:v}))});
+  }
+  if(activeIndicators[coin].includes('EMA')){
+    const ema = technicalindicators.EMA.calculate({period:14, values:closes});
+    overlays.push({name:'EMA', type:'line', data:ema.map((v,i)=>({x:data[i+data.length-ema.length].x, y:v}))});
+  }
+  if(activeIndicators[coin].includes('Bollinger')){
+    const bb = technicalindicators.BollingerBands.calculate({period:20, stdDev:2, values:closes});
+    overlays.push({name:'BB Upper', type:'line', data:bb.map((v,i)=>({x:data[i+data.length-bb.length].x, y:v.upper})), stroke:{dashArray:5}});
+    overlays.push({name:'BB Lower', type:'line', data:bb.map((v,i)=>({x:data[i+data.length-bb.length].x, y:v.lower})), stroke:{dashArray:5}});
+  }
+  // Additional indicators (MACD, RSI, Stochastic, CCI, OBV, ATR) can be added similarly using technicalindicators library.
+
+  // TODO: Overlay on ApexCharts - here we can merge series with candlesticks or use separate mini charts.
+}
+
+// ------------------ Trade ------------------
+async function tradePanel(coin,type){
+  const amount=parseFloat(document.getElementById("amount-"+coin).value);
+  if(!amount||amount<=0) return alert("Enter valid amount");
+  const price=await getCurrentPrice(coin);
+  if(type==="buy"){
+    if(currentUser.balance<amount) return alert("Not enough USD");
+    currentUser.balance-=amount;
+    balances[coin]+=(amount/price);
+  } else {
+    if(balances[coin]*price<amount) return alert("Not enough coin balance");
+    balances[coin]-=(amount/price);
+    currentUser.balance+=amount;
+  }
+  tradeHistory.push({coin,type,amount,price,time:new Date()});
+  renderTradeHistory();
+  updateBalancePanel(coin);
+  updateSummary();
+}
+
+// ------------------ Update balance ------------------
+async function updateBalancePanel(coin){
+  const price=await getCurrentPrice(coin);
+  const changeClass=await get24hChangeClass(coin);
+  document.getElementById("balance-"+coin).innerHTML=`USD Balance: $${currentUser.balance.toFixed(2)} | ${coinSymbols[coin]}: ${balances[coin].toFixed(6)} (~$${(balances[coin]*price).toFixed(2)}) | Price: <span class="${changeClass}">$${price}</span>`;
+  updateSummary();
+}
+
+// ------------------ Summary ------------------
+async function updateSummary(){
+  let portfolioValue=0;
+  for(const c of Object.keys(balances)){
+    const price=await getCurrentPrice(c);
+    portfolioValue += balances[c]*price;
+  }
+  const totalBalance = currentUser.balance + portfolioValue;
+  const initialBalance=1000;
+  const profitLoss = totalBalance - initialBalance;
+  document.getElementById("summary").innerHTML=`Total Balance: $${currentUser.balance.toFixed(2)} | Portfolio Value: $${portfolioValue.toFixed(2)} | Total Profit/Loss: <span class="${profitLoss>=0?'positive':'negative'}">$${profitLoss.toFixed(2)}</span>`;
+}
+
+// ------------------ Trade History ------------------
+function renderTradeHistory(){
+  const container=document.getElementById("trade-history");
+  container.innerHTML="<h3>Trade History</h3>";
+  tradeHistory.slice().reverse().forEach(t=>{
+    const div=document.createElement("div"); div.className="trade-entry";
+    div.innerHTML=`<span>${t.time.toLocaleString()}</span><span>${t.coin.toUpperCase()} ${t.type.toUpperCase()}</span><span>$${t.amount} @ $${t.price.toFixed(2)}</span>`;
+    container.appendChild(div);
+  });
+}
+
+// ------------------ Get price ------------------
+async function getCurrentPrice(coin){
+  const res=await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${coin.toUpperCase()}`);
+  const data=await res.json();
+  return parseFloat(data.price);
+}
+
+// ------------------ Get 24h change ------------------
+async function get24hChangeClass(coin){
+  const res=await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${coin.toUpperCase()}`);
+  const data=await res.json();
+  return parseFloat(data.priceChangePercent)>=0?'positive':'negative';
+}
+</script>
+</body>
+</html>

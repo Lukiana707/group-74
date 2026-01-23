@@ -1,12 +1,10 @@
-name = "Lukiana"
+name = "Monica"
 
-age = 10
- 
+age = 8
 
-age = 10
+age = 8
 
-name = "Lukiana"
-
+name = "Monica"
 
 print(name)
 

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Countdown Timer</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f4f8;
+      text-align: center;
+      padding: 40px;
+    }
+
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 100px;
+      margin: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005ea2;
+    }
+
+    #timer {
+      margin-top: 30px;
+      font-size: 48px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Countdown Timer ⏳</h1>
+  <input type="number" id="minutes" placeholder="Minutes">
+  <button onclick="startTimer()">Start</button>
+  <div id="timer">00:00</div>
+
+  <script>
+    let countdown;
+
+    function startTimer() {
+      clearInterval(countdown);
+      const mins = parseInt(document.getElementById('minutes').value);
+      if (isNaN(mins) || mins <= 0) return;
+
+      let time = mins * 60;
+      updateDisplay(time);
+
+      countdown = setInterval(() => {
+        time--;
+        updateDisplay(time);
+        if (time <= 0) clearInterval(countdown);
+      }, 1000);
+    }
+
+    function updateDisplay(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = seconds % 60;
+      document.getElementById('timer').textContent =
+        `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    }
+  </script>
+</body>
+</html>

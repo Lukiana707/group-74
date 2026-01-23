@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cute Art Zone 🎀</title>
+  <style>
+    /* 🌸 General Page Style */
+    body {
+      font-family: "Comic Sans MS", cursive, sans-serif;
+      background-color: #f7e0d6; /* light brown background */
+      color: #4b3d32; /* dark brown text */
+      margin: 0;
+      padding: 0;
+    }
+
+    /* 🎀 Header */
+    header {
+      background-color: #f3c9d2; /* soft pink */
+      text-align: center;
+      padding: 2rem;
+      position: relative;
+      border-bottom: 5px solid #f1a1b6;
+    }
+
+    header h1 {
+      font-size: 3rem;
+      color: #4b3d32;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .roblox-link a {
+      background-color: #ea7f9e;
+      color: white;
+      padding: 0.7rem 1.7rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    .roblox-link a:hover {
+      background-color: #ff92a4;
+    }
+
+    /* 🎨 Art Platform Layout */
+    .art-platform {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      padding: 2rem;
+      gap: 2rem;
+    }
+
+    .drawing-area, .tutorial-area {
+      background-color: #fff4f1;
+      width: 45%;
+      min-width: 300px;
+      padding: 1.5rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border: 3px dashed #f1a1b6;
+      position: relative;
+    }
+
+    h2 {
+      text-align: center;
+      color: #4b3d32;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    /* 🖌️ Canvas Area */
+    canvas {
+      width: 100%;
+      height: 300px;
+      border: 2px solid #f3c9d2;
+      background-color: white;
+      border-radius: 10px;
+      cursor: crosshair;
+    }
+
+    .zoom-controls {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    button {
+      background-color: #ea7f9e;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #ff92a4;
+    }
+
+    /* 🎨 Brush Selection */
+    .brush-controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1rem;
+    }
+
+    .brush-controls input {
+      width: 60px;
+    }
+
+    /* 💖 Tutorial Links */
+    .tutorial-area ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .tutorial-area li {
+      margin: 0.5rem 0;
+      text-align: center;
+    }
+
+    .tutorial-area a {
+      color: #ea7f9e;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .tutorial-area a:hover {
+      text-decoration: underline;
+    }
+
+    /* 📈 Progress Bar */
+    .progress-container {
+      margin-top: 1rem;
+      background-color: #f3c9d2;
+      border-radius: 10px;
+      height: 20px;
+      width: 100%;
+    }
+
+    .progress-bar {
+      background-color: #ea7f9e;
+      height: 100%;
+      border-radius: 10px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+
+    /* 🌸 Footer */
+    footer {
+      background-color: #f3c9d2;
+      text-align: center;
+      padding: 1rem;
+      font-size: 1.1rem;
+      color: #4b3d32;
+      border-top: 5px solid #f1a1b6;
+    }
+  </style>
+</head>
+<body>
+  <!-- 🎀 Header -->
+  <header>
+    <h1>Welcome to Cute Art Zone 🎀</h1>
+    <p>Draw, learn, and have fun with endless colors and cute tutorials!</p>
+    <div class="roblox-link">
+      <a href="https://www.roblox.com/users/Annamia783/profile" target="_blank">Visit My Roblox Profile 💕</a>
+    </div>
+  </header>
+
+  <!-- 🎨 Drawing & Tutorials -->
+  <section class="art-platform">
+    <div class="drawing-area">
+      <h2>🎨 Draw the Tutorial!</h2>
+      <canvas id="drawingCanvas"></canvas>
+      <div class="zoom-controls">
+        <button id="zoomIn">Zoom In 🔍</button>
+        <button id="zoomOut">Zoom Out 🔎</button>
+      </div>
+
+      <!-- Brush Controls -->
+      <div class="brush-controls">
+        <label for="brushSize">Brush Size:</label>
+        <input type="number" id="brushSize" value="5" min="1" max="50">
+        <label for="brushColor">Brush Color:</label>
+        <input type="color" id="brushColor" value="#000000">
+      </div>
+
+      <!-- Eraser Control -->
+      <div class="brush-controls">
+        <button id="eraserButton">Use Eraser ❌</button>
+      </div>
+
+      <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+    </div>
+
+    <div class="tutorial-area">
+      <h2>💝 Learn How to Draw!</h2>
+      <p>Click below to start cute art tutorials:</p>
+      <ul>
+        <li>🎂 <a href="#" onclick="startCakeDrawing()">How to Draw a Cake</a></li>
+        <li>💖 <a href="#" onclick="startHeartDrawing()">How to Draw a Heart</a></li>
+        <li>🐻 <a href="#" onclick="startBearDrawing()">How to Draw a Bear</a></li>
+        <li>🌈 <a href="#">And More!</a></li>
+      </ul>
+
+      <div id="tutorialSteps" style="display:none;">
+        <h3>Step-by-Step Drawing Tutorial</h3>
+        <p id="stepDescription">Draw the first shape!</p>
+        <div id="stepImage"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 🌸 Footer -->
+  <footer>
+    Made with love and pink bows 🎀 by <strong>Annamia783</strong>
+  </footer>
+
+  <script>
+    // 🌈 Canvas Setup
+    const canvas = document.getElementById('drawingCanvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let zoomLevel = 1;
+    let progress = 0;
+    let brushSize = 5;
+    let brushColor = "#000000";
+    let isEraser = false;
+    let eraserSize = 10;
+    let currentStep = 0;
+
+    canvas.width = 600;
+    canvas.height = 300;
+
+    // Step Instructions
+    const steps = [
+      {
+        description: 'Draw the cake base (a simple rectangle)',
+        draw: (ctx) => {
+          ctx.beginPath();
+          ctx.rect(150, 150, 300, 100);
+          ctx.fillStyle = '#ffdab9'; // Light pink color
+          ctx.fill();
+        }
+      },
+      {
+        description: 'Draw the first layer of the cake (another rectangle)',
+        draw: (ctx) => {
+          ctx.beginPath();
+          ctx.rect(175, 120, 250, 40);
+          ctx.fillStyle = '#ff80ab'; // Darker pink
+          ctx.fill();
+        }
+      },
+      {
+        description: 'Decorate with icing (draw lines on top)',
+        draw: (ctx) => {
+          ctx.beginPath();
+          ctx.moveTo(150, 120);
+          ctx.lineTo(450, 120);
+          ctx.lineWidth = 5;
+          ctx.strokeStyle = '#ffffff'; // White icing color
+          ctx.stroke();
+        }
+      }
+    ];
+
+    // Step Drawing Function
+    function startCakeDrawing() {
+      document.getElementById('tutorialSteps').style.display = 'block';
+      currentStep = 0;
+      progress = 0;
+      updateTutorialStep();
+    }
+
+    function updateTutorialStep() {
+      if (currentStep < steps.length) {
+        const step = steps[currentStep];
+        document.getElementById('stepDescription').textContent = step.description;
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas before each step
+        step.draw(ctx);
+      }
+    }
+
+    // 🖌️ Drawing Logic for Touch Support
+    function startDrawing(e) {
+      e.preventDefault();
+      drawing = true;
+      const x = e.touches[0].clientX - canvas.offsetLeft;
+      const y = e.touches[0].clientY - canvas.offsetTop;
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
+
+    function draw(e) {
+      if (!drawing) return;
+      e.preventDefault();
+      const x = e.touches[0].clientX - canvas.offsetLeft;
+      const y = e.touches[0].clientY - canvas.offsetTop;
+      if (isEraser) {
+        ctx.clearRect(x - eraserSize / 2, y - eraserSize / 2, eraserSize, eraserSize);
+      } else {
+        ctx.lineWidth = brushSize;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = brushColor;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+    }
+
+    function stopDrawing() {
+      drawing = false;
+      ctx.closePath();
+    }
+
+    // Touch events for mobile/touchscreen devices
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+
+    // Zoom functionality
+    document.getElementById('zoomIn').addEventListener('click', () => {
+      zoomLevel += 0.1;
+      canvas.style.transform = `scale(${zoomLevel})`;
+    });
+
+    document.getElementById('zoomOut').addEventListener('click', () => {
+      zoomLevel = Math.max(0.5, zoomLevel - 0.1);
+      canvas.style.transform = `scale(${zoomLevel})`;
+    });
+
+    // Brush Size and Color
+    document.getElementById('brushSize').addEventListener('input', (e) => {
+      brushSize = e.target.value;
+    });
+
+    document.getElementById('brushColor').addEventListener('input', (e) => {
+      brushColor = e.target.value;
+    });
+
+    // Eraser Toggle
+    document.getElementById('eraserButton').addEventListener('click', () => {
+      isEraser = !isEraser;
+      if (isEraser) {
+        document.getElementById('eraserButton').textContent = 'Use Brush ✍️';
+      } else {
+        document.getElementById('eraserButton').textContent = 'Use Eraser ❌';
+      }
+    });
+
+    // Start drawing process
+    startCakeDrawing(); // Auto start tutorial for now
+  </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bunny Basket Catcher</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      text-align: center;
+      background: #f1f8e9;
+    }
+
+    h2 {
+      margin: 10px;
+    }
+
+    #score, #strikes {
+      font-size: 1.2em;
+      margin-bottom: 5px;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 600px;
+      height: 500px;
+      margin: 0 auto;
+      background: #dcedc8;
+      border: 3px solid #558b2f;
+      overflow: hidden;
+    }
+
+    .emoji {
+      position: absolute;
+      font-size: 1.8em;
+      user-select: none;
+    }
+
+    #bunny {
+      position: absolute;
+      bottom: 0;
+      width: 60px;
+      height: 60px;
+      font-size: 2em;
+      text-align: center;
+    }
+
+    button {
+      margin: 10px;
+      padding: 8px 16px;
+      font-size: 1em;
+      background: #558b2f;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #controls {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .arrowBtn {
+      width: 60px;
+      height: 60px;
+      font-size: 2em;
+      background: #aed581;
+      border: 2px solid #558b2f;
+      border-radius: 50%;
+      user-select: none;
+    }
+
+    #tutorialBox {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 2px solid #558b2f;
+      padding: 20px;
+      font-size: 1em;
+      width: 80%;
+      max-width: 400px;
+      display: none;
+      z-index: 10;
+    }
+
+    #tutorialPrompt {
+      margin-top: 10px;
+    }
+
+    @media (max-width: 700px) {
+      #gameArea {
+        width: 100%;
+        max-width: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>🐰 Bunny Basket Catcher</h2>
+  <div id="score">Score: 0</div>
+  <div id="strikes">Strikes: 0 / 10</div>
+  <div id="tutorialPrompt">
+    <p>Do you need a tutorial?</p>
+    <button onclick="showTutorial()">Yes</button>
+    <button onclick="startGame()">No</button>
+  </div>
+  <div id="gameArea">
+    <div id="bunny">🐰🧺</div>
+    <div id="tutorialBox">
+      <strong>How to Play:</strong><br>
+      Move with ⬅️ ➡️ or A/D or touch buttons<br>
+      Catch 🍎🍒🍇 for points, avoid 💣☠️ (10 strikes = restart)
+    </div>
+  </div>
+  <div id="controls">
+    <button class="arrowBtn" id="leftBtn">⬅️</button>
+    <button class="arrowBtn" id="rightBtn">➡️</button>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const bunny = document.getElementById("bunny");
+    const scoreDisplay = document.getElementById("score");
+    const strikesDisplay = document.getElementById("strikes");
+    const leftBtn = document.getElementById("leftBtn");
+    const rightBtn = document.getElementById("rightBtn");
+    const tutorialBox = document.getElementById("tutorialBox");
+    const tutorialPrompt = document.getElementById("tutorialPrompt");
+
+    const goodEmojis = ["🍎", "🍒", "🍇"];
+    const badEmojis = ["💣", "☠️"];
+    let score = 0;
+    let strikes = 0;
+    let bunnyX = 270;
+    let keys = {};
+    let moveSpeed = 5;
+    let holdLeft = false;
+    let holdRight = false;
+    let emojiInterval;
+
+    function moveBunny() {
+      if (keys["ArrowLeft"] || keys["a"] || holdLeft) {
+        bunnyX -= moveSpeed;
+      } else if (keys["ArrowRight"] || keys["d"] || holdRight) {
+        bunnyX += moveSpeed;
+      }
+
+      bunnyX = Math.max(0, Math.min(gameArea.clientWidth - 60, bunnyX));
+      bunny.style.left = bunnyX + "px";
+    }
+
+    document.addEventListener("keydown", e => {
+      keys[e.key] = true;
+    });
+
+    document.addEventListener("keyup", e => {
+      keys[e.key] = false;
+    });
+
+    leftBtn.addEventListener("touchstart", () => {
+      holdLeft = true;
+    });
+    leftBtn.addEventListener("touchend", () => {
+      holdLeft = false;
+    });
+
+    rightBtn.addEventListener("touchstart", () => {
+      holdRight = true;
+    });
+    rightBtn.addEventListener("touchend", () => {
+      holdRight = false;
+    });
+
+    function spawnEmoji() {
+      const emoji = document.createElement("div");
+      emoji.className = "emoji";
+      const isGood = Math.random() < 0.7;
+      emoji.textContent = isGood
+        ? goodEmojis[Math.floor(Math.random() * goodEmojis.length)]
+        : badEmojis[Math.floor(Math.random() * badEmojis.length)];
+      emoji.style.left = Math.random() * (gameArea.clientWidth - 30) + "px";
+      emoji.style.top = "-30px";
+      gameArea.appendChild(emoji);
+
+      const fall = setInterval(() => {
+        emoji.style.top = emoji.offsetTop + 3 + "px";
+        moveBunny();
+
+        const emojiRect = emoji.getBoundingClientRect();
+        const bunnyRect = bunny.getBoundingClientRect();
+        if (
+          emojiRect.bottom >= bunnyRect.top &&
+          emojiRect.left < bunnyRect.right &&
+          emojiRect.right > bunnyRect.left
+        ) {
+          if (goodEmojis.includes(emoji.textContent)) {
+            score += 10;
+          } else {
+            strikes++;
+            strikesDisplay.textContent = `Strikes: ${strikes} / 10`;
+            if (strikes >= 10) {
+              alert("💥 Too many strikes! Restarting...");
+              startGame();
+              return;
+            }
+            score -= 10;
+          }
+          scoreDisplay.textContent = "Score: " + score;
+          emoji.remove();
+          clearInterval(fall);
+        }
+
+        if (emoji.offsetTop > gameArea.clientHeight) {
+          emoji.remove();
+          clearInterval(fall);
+        }
+      }, 20);
+    }
+
+    function showTutorial() {
+      tutorialPrompt.style.display = "none";
+      tutorialBox.style.display = "block";
+      setTimeout(() => {
+        tutorialBox.style.display = "none";
+        startGame();
+      }, 7000);
+    }
+
+    function startGame() {
+      score = 0;
+      strikes = 0;
+      scoreDisplay.textContent = "Score: 0";
+      strikesDisplay.textContent = "Strikes: 0 / 10";
+      bunnyX = gameArea.clientWidth / 2 - 30;
+      bunny.style.left = bunnyX + "px";
+      clearInterval(emojiInterval);
+      emojiInterval = setInterval(spawnEmoji, 500);
+      tutorialPrompt.style.display = "none";
+      tutorialBox.style.display = "none";
+    }
+  </script>
+</body>
+</html>

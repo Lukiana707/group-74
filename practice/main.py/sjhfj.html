@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Click Counter</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+      background-color: #fefefe;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 15px 30px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    #count {
+      font-size: 48px;
+      margin-top: 20px;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Click Me! 🖱️</h1>
+  <button onclick="increaseCount()">Click</button>
+  <div id="count">0</div>
+
+  <script>
+    let count = 0;
+    function increaseCount() {
+      count++;
+      document.getElementById('count').textContent = count;
+    }
+  </script>
+</body>
+</html>

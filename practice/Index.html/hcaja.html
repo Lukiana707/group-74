@@ -1,0 +1,69 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🐇the cute bunny game🐇</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive;
+      background-color: #0000ff;
+      text-align: center;
+      padding: 20px;
+    
+    }
+
+    h1 {
+      color: #fe6608;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 400px;
+      height: 400px;
+      margin: 20px auto;
+      background-color: #0716e3;
+      border: 4px solid #1be704;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    #seal {
+      position: absolute;
+      font-size: 48px;
+      left: 180px;
+      top: 180px;
+      transition: top 0.1s, left 0.1s;
+    }
+
+    #instructions {
+      font-size: 18px;
+      color: #e0cdcd;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐇the cute bunny game🐇</h1>
+  <div id="gameArea">
+    <div id="seal">🐇</div>
+  </div>
+  <div id="instructions">move your cute little bunny pet</div>
+
+  <script>
+    const seal = document.getElementById('seal');
+    let x = 180;
+    let y = 180;
+
+    document.addEventListener('keydown', function(e) {
+      const step = 20;
+      if (e.key === 'ArrowUp' && y > 0) y -= step;
+      if (e.key === 'ArrowDown' && y < 360) y += step;
+      if (e.key === 'ArrowLeft' && x > 0) x -= step;
+      if (e.key === 'ArrowRight' && x < 360) x += step;
+
+      seal.style.left = x + 'px';
+      seal.style.top = y + 'px';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Virtual Pet</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f8ff;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    #pet {
+      font-size: 80px;
+      margin: 20px;
+    }
+
+    .actions button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .actions button:hover {
+      background-color: #005ea2;
+    }
+
+    #status {
+      margin-top: 20px;
+      font-size: 20px;
+      color: #0078D4;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐾 Meet Your Virtual Pet</h1>
+  <div id="pet">😐</div>
+  <div class="actions">
+    <button onclick="feed()">Feed 🍎</button>
+    <button onclick="play()">Play 🎾</button>
+    <button onclick="sleep()">Sleep 😴</button>
+  </div>
+  <div id="status">Your pet is waiting...</div>
+
+  <script>
+    const pet = document.getElementById('pet');
+    const status = document.getElementById('status');
+
+    function feed() {
+      pet.textContent = '😋';
+      status.textContent = 'Yum! That was delicious.';
+    }
+
+    function play() {
+      pet.textContent = '😄';
+      status.textContent = 'Woohoo! That was fun!';
+    }
+
+    function sleep() {
+      pet.textContent = '😴';
+      status.textContent = 'Zzz... your pet is sleeping.';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<style>
+body { font-family: Arial; background: #1e1e1e; color: #fff; text-align:center; padding:20px;}
+.container { max-width: 900px; margin:auto;}
+input, select { padding:10px; margin:5px; border-radius:5px; border:none; width:200px;}
+button { padding:10px 20px; margin:5px; border:none; background:#00b894; color:white; border-radius:5px; cursor:pointer;}
+button:hover { background:#019e6a;}
+.trade-panel { margin-top:20px; }
+#chart { margin-top:20px;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Crypto Dashboard</h1>
+
+<div id="auth">
+<h2>Login / Register</h2>
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
+</div>
+
+<div id="dashboard" style="display:none;">
+<h2 id="coin-title">Select Coin</h2>
+<select id="coin-select" onchange="changeCoin()">
+<option value="btcusdt">BTC/USDT</option>
+<option value="ethusdt">ETH/USDT</option>
+<option value="bnbusdt">BNB/USDT</option>
+</select>
+
+<div id="chart"></div>
+
+<div class="trade-panel">
+<input type="number" id="amount" placeholder="Amount USD">
+<button onclick="trade('buy')">Buy</button>
+<button onclick="trade('sell')">Sell</button>
+</div>
+
+<div id="balance">Balance: $0</div>
+<button onclick="logout()">Logout</button>
+</div>
+</div>
+
+<script>
+let balance = 1000;
+let chart, series = [];
+let currentUser = null;
+let currentCoin = "btcusdt";
+let ws;
+
+// ---------- Auth ----------
+function register(){
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
+if(!email||!password) return alert("Enter email & password");
+const users = JSON.parse(localStorage.getItem("users")||"[]");
+if(users.find(u=>u.email===email)) return alert("User exists");
+users.push({email,password,balance:1000,coins:{btcusdt:0,ethusdt:0,bnbusdt:0}});
+localStorage.setItem("users",JSON.stringify(users));
+alert("Registered!");
+}
+
+function login(){
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
+const users = JSON.parse(localStorage.getItem("users")||"[]");
+const user = users.find(u=>u.email===email && u.password===password);
+if(!user) return alert("Invalid login");
+currentUser=user;
+balance=user.balance;
+document.getElementById("auth").style.display="none";
+document.getElementById("dashboard").style.display="block";
+updateBalance();
+initChart();
+}
+
+function logout(){
+if(currentUser){
+const users = JSON.parse(localStorage.getItem("users")||"[]");
+const index = users.findIndex(u=>u.email===currentUser.email);
+if(index!==-1){
+users[index].balance=balance;
+users[index].coins=currentUser.coins;
+}
+localStorage.setItem("users",JSON.stringify(users));
+}
+currentUser=null;
+if(ws) ws.close();
+document.getElementById("auth").style.display="block";
+document.getElementById("dashboard").style.display="none";
+}
+
+// ---------- Trade ----------
+function trade(type){
+const amount=parseFloat(document.getElementById("amount").value);
+if(!amount||amount<=0) return alert("Enter valid amount");
+const coin = currentCoin;
+if(type==="buy"){
+if(balance<amount) return alert("Not enough USD");
+balance-=amount;
+currentUser.coins[coin]+=amount; // For simplicity store USD spent
+}else{
+if(currentUser.coins[coin]<amount) return alert("Not enough coin balance");
+balance+=amount;
+currentUser.coins[coin]-=amount;
+}
+updateBalance();
+}
+
+function updateBalance(){
+document.getElementById("balance").innerText=`Balance: $${balance.toFixed(2)} | Coin balance: ${currentUser.coins[currentCoin].toFixed(2)}`;
+}
+
+// ---------- Chart ----------
+function initChart(){
+series=[];
+if(chart) chart.destroy();
+chart=new ApexCharts(document.querySelector("#chart"),{chart:{type:'candlestick',height:350},series:[{data:series}],xaxis:{type:'datetime'}});
+chart.render();
+connectWS();
+}
+
+function connectWS(){
+if(ws) ws.close();
+ws=new WebSocket(`wss://stream.binance.com:9443/ws/${currentCoin}@kline_1m`);
+ws.onmessage=(event)=>{
+const msg=JSON.parse(event.data).k;
+const candle={x:new Date(msg.t),y:[parseFloat(msg.o),parseFloat(msg.h),parseFloat(msg.l),parseFloat(msg.c)]};
+series.push(candle);
+if(series.length>50) series.shift();
+chart.updateSeries([{data:series}]);
+}
+}
+
+function changeCoin(){
+currentCoin=document.getElementById("coin-select").value;
+document.getElementById("coin-title").innerText=currentCoin.toUpperCase();
+updateBalance();
+initChart();
+}
+</script>
+</body>
+</html>

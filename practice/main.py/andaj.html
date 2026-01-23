@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Avatar Creator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f4f8;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    select {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px;
+    }
+
+    #avatar {
+      margin-top: 30px;
+      font-size: 80px;
+    }
+
+    #summary {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #0078D4;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 Build Your Avatar</h1>
+  <select id="hair">
+    <option value="">Hair</option>
+    <option value="🦱 Curly">🦱 Curly</option>
+    <option value="🧑 Straight">🧑 Straight</option>
+    <option value="👩‍🦲 Bald">👩‍🦲 Bald</option>
+  </select>
+  <select id="eyes">
+    <option value="">Eyes</option>
+    <option value="👀 Round">👀 Round</option>
+    <option value="😎 Cool">😎 Cool</option>
+    <option value="🥺 Cute">🥺 Cute</option>
+  </select>
+  <select id="accessory">
+    <option value="">Accessory</option>
+    <option value="🎩 Hat">🎩 Hat</option>
+    <option value="🧢 Cap">🧢 Cap</option>
+    <option value="👓 Glasses">👓 Glasses</option>
+  </select>
+  <br>
+  <button onclick="createAvatar()">Create Avatar</button>
+  <div id="avatar">🤖</div>
+  <div id="summary"></div>
+
+  <script>
+    function createAvatar() {
+      const hair = document.getElementById('hair').value;
+      const eyes = document.getElementById('eyes').value;
+      const accessory = document.getElementById('accessory').value;
+
+      const avatar = `${hair.split(' ')[0] || ''} ${eyes.split(' ')[0] || ''} ${accessory.split(' ')[0] || ''}`;
+      document.getElementById('avatar').textContent = avatar.trim() || '🤖';
+      document.getElementById('summary').textContent = `You chose: ${hair}, ${eyes}, ${accessory}`;
+    }
+  </script>
+</body>
+</html>

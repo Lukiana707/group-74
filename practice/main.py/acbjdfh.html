@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Personality Quiz</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fff8f0;
+      padding: 40px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .question {
+      margin: 20px 0;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 16px;
+      background-color: #6c5ce7;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #4b3ecf;
+    }
+
+    #result {
+      margin-top: 30px;
+      font-size: 20px;
+      color: #2d3436;
+    }
+  </style>
+</head>
+<body>
+  <h1>What’s Your Personality Type? 🧬</h1>
+
+  <div class="question">
+    <p>1. How do you spend your weekend?</p>
+    <button onclick="score('introvert')">Reading a book</button>
+    <button onclick="score('extrovert')">Hanging out with friends</button>
+  </div>
+
+  <div class="question">
+    <p>2. What’s your ideal vacation?</p>
+    <button onclick="score('introvert')">Quiet cabin in the woods</button>
+    <button onclick="score('extrovert')">Beach party</button>
+  </div>
+
+  <div class="question">
+    <p>3. What motivates you?</p>
+    <button onclick="score('introvert')">Personal growth</button>
+    <button onclick="score('extrovert')">Exciting challenges</button>
+  </div>
+
+  <button onclick="showResult()">See Result</button>
+  <div id="result"></div>
+
+  <script>
+    let introvertScore = 0;
+    let extrovertScore = 0;
+
+    function score(type) {
+      if (type === 'introvert') introvertScore++;
+      else extrovertScore++;
+    }
+
+    function showResult() {
+      const result = document.getElementById('result');
+      if (introvertScore > extrovertScore) {
+        result.textContent = "You’re an introspective thinker 🌙";
+      } else if (extrovertScore > introvertScore) {
+        result.textContent = "You’re a vibrant explorer 🌞";
+      } else {
+        result.textContent = "You’re a balanced soul 🌗";
+      }
+    }
+  </script>
+</body>
+</html>

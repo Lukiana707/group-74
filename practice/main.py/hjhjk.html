@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mood Weather</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+      background-color: #e0f7fa;
+    }
+
+    select {
+      font-size: 18px;
+      padding: 10px;
+    }
+
+    #weather {
+      margin-top: 30px;
+      font-size: 24px;
+      color: #0078D4;
+    }
+  </style>
+</head>
+<body>
+  <h1>What's Your Mood? 🌤️</h1>
+  <select onchange="showWeather(this.value)">
+    <option value="">Select mood</option>
+    <option value="happy">Happy</option>
+    <option value="sad">Sad</option>
+    <option value="angry">Angry</option>
+    <option value="chill">Chill</option>
+  </select>
+  <div id="weather"></div>
+
+  <script>
+    function showWeather(mood) {
+      let message = '';
+      switch(mood) {
+        case 'happy': message = '☀️ Sunny skies ahead!'; break;
+        case 'sad': message = '🌧️ A gentle rain to match your mood.'; break;
+        case 'angry': message = '⛈️ Thunderstorms brewing!'; break;
+        case 'chill': message = '🌤️ A calm breeze and soft clouds.'; break;
+        default: message = '';
+      }
+      document.getElementById('weather').textContent = message;
+    }
+  </script>
+</body>
+</html>

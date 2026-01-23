@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Light Beat Generator</title>
+<style>
+body { font-family: Arial, sans-serif; background: #111; color: #fff; text-align: center; padding: 20px; }
+h1 { margin-bottom: 20px; }
+.track { margin: 10px 0; }
+.step { width: 30px; height: 30px; display: inline-block; margin: 2px; background: #333; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+.step.active { background: #4CAF50; }
+button, input { margin: 5px; padding: 8px 15px; font-size: 16px; border-radius: 5px; border: none; cursor: pointer; }
+input[type="number"] { width: 80px; }
+</style>
+</head>
+<body>
+
+<h1>Light Beat Generator</h1>
+<label>Tempo (BPM): <input type="number" id="tempoInput" value="140" min="40" max="300"></label>
+
+<div id="tracksContainer"></div>
+<div>
+  <button id="randomBtn">Generate Light Beats</button>
+  <button id="playBtn">Play</button>
+  <button id="stopBtn">Stop</button>
+  <button id="saveBtn">Save Pattern</button>
+  <button id="loadBtn">Load Pattern</button>
+</div>
+
+<script>
+// Instrument tracks for light beats
+const tracks = ['Kick', 'Snare', 'Hi-Hat', 'Clap', 'Shaker'];
+const steps = 16;
+let currentStep = 0;
+let interval;
+let bpm = 140;
+
+// Audio context
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+// Softer sound function
+function playSound(track){
+  let freq, type, dur, vol;
+  switch(track){
+    case 'Kick': freq=120; type='sine'; dur=0.08; vol=0.2; break;       // Soft kick
+    case 'Snare': freq=350; type='triangle'; dur=0.08; vol=0.2; break;   // Light snare
+    case 'Hi-Hat': freq=800; type='square'; dur=0.03; vol=0.15; break;   // Short hi-hat
+    case 'Clap': freq=450; type='sawtooth'; dur=0.05; vol=0.15; break;   // Soft clap
+    case 'Shaker': freq=1000; type='triangle'; dur=0.02; vol=0.1; break; // Light shaker
+  }
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+  osc.start();
+  osc.stop(audioCtx.currentTime + dur);
+}
+
+// Create grid
+const tracksContainer = document.getElementById('tracksContainer');
+tracks.forEach(track => {
+  const trackDiv = document.createElement('div');
+  trackDiv.className = 'track';
+  trackDiv.innerHTML = `<strong>${track}:</strong> `;
+  for(let i=0;i<steps;i++){
+    const stepDiv = document.createElement('div');
+    stepDiv.className = 'step';
+    stepDiv.dataset.track = track;
+    stepDiv.dataset.step = i;
+    stepDiv.addEventListener('click', () => stepDiv.classList.toggle('active'));
+    trackDiv.appendChild(stepDiv);
+  }
+  tracksContainer.appendChild(trackDiv);
+});
+
+// Play loop
+function playBeat(){
+  if(interval) clearInterval(interval);
+  bpm = parseInt(document.getElementById('tempoInput').value);
+  interval = setInterval(() => {
+    tracks.forEach(track => {
+      const stepDiv = document.querySelector(`.step[data-track="${track}"][data-step="${currentStep}"]`);
+      if(stepDiv.classList.contains('active')) playSound(track);
+    });
+    currentStep = (currentStep + 1) % steps;
+  }, 60000 / bpm / 4);
+}
+
+// Random light beat generator
+function generateLightBeats(){
+  tracks.forEach(track => {
+    for(let i=0;i<steps;i++){
+      const stepDiv = document.querySelector(`.step[data-track="${track}"][data-step="${i}"]`);
+      stepDiv.classList.remove('active');
+      // Softer probability for light beats
+      let prob = 0.3;
+      if(track==='Hi-Hat' || track==='Shaker') prob = 0.6; // More frequent hi-hats/shakers
+      if(Math.random() < prob) stepDiv.classList.add('active');
+    }
+  });
+}
+
+// Save/Load patterns
+function savePattern(){
+  const pattern = [];
+  tracks.forEach(track=>{
+    const row = [];
+    for(let i=0;i<steps;i++){
+      const stepDiv = document.querySelector(`.step[data-track="${track}"][data-step="${i}"]`);
+      row.push(stepDiv.classList.contains('active') ? 1 : 0);
+    }
+    pattern.push(row);
+  });
+  localStorage.setItem('lightBeatPattern', JSON.stringify(pattern));
+  alert('Pattern saved!');
+}
+
+function loadPattern(){
+  const pattern = JSON.parse(localStorage.getItem('lightBeatPattern'));
+  if(!pattern) return alert('No saved pattern!');
+  tracks.forEach((track, tIdx)=>{
+    for(let i=0;i<steps;i++){
+      const stepDiv = document.querySelector(`.step[data-track="${track}"][data-step="${i}"]`);
+      if(pattern[tIdx][i]===1) stepDiv.classList.add('active');
+      else stepDiv.classList.remove('active');
+    }
+  });
+  alert('Pattern loaded!');
+}
+
+// Button events
+document.getElementById('playBtn').addEventListener('click', playBeat);
+document.getElementById('stopBtn').addEventListener('click', ()=>{ clearInterval(interval); currentStep=0; });
+document.getElementById('randomBtn').addEventListener('click', generateLightBeats);
+document.getElementById('saveBtn').addEventListener('click', savePattern);
+document.getElementById('loadBtn').addEventListener('click', loadPattern);
+</script>
+
+</body>
+</html>

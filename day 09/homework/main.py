@@ -1,4 +1,5 @@
-# A for loop in Python repeatedly executes a block of code for each item in a sequence or for a specified range of values.
+# A for loop in Python repeatedly executes a block of code for each item in a sequence or for a specified range of value
+
 for i in range(5):
     print(i)  
 # ----------------

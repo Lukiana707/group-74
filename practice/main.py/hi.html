@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quote Generator</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      text-align: center;
+      padding: 50px;
+    }
+
+    #quote {
+      font-size: 24px;
+      margin: 20px;
+      color: #333;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #0078D4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #005ea2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Inspire Me 💡</h1>
+  <div id="quote">Click the button for a quote!</div>
+  <button onclick="generateQuote()">New Quote</button>
+
+  <script>
+    const quotes = [
+      "Believe you can and you're halfway there.",
+      "Do one thing every day that scares you.",
+      "Success is not final, failure is not fatal.",
+      "Dream big and dare to fail.",
+      "Everything you can imagine is real.",
+      "You must be the change you wish to see in the world.",
+      "It is never too late to be what you might have been.",
+      "The unexamined life is not worth living.",
+      "Life is really simple, but we insist on making it complicated.",
+      "Whether you think you can or think you can't, you're right.",
+      "Opportunities don't happen, you create them.",
+      "The happiness of your life depends on the quality of your thoughts.",
+      "You are braver than you believe, stronger than you seem, and smarter than you think.",
+      "Keep your face always toward the sunshine, and shadows will fall behind you.",
+      "The only thing we have to fear is fear itself.",
+      "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+      "You miss 100% of the shots you don't take."                                                              
+    
+      
+    ];
+
+    function generateQuote() {
+      const random = Math.floor(Math.random() * quotes.length);
+      document.getElementById('quote').textContent = quotes[random];
+    }
+  </script>
+</body>
+</html>

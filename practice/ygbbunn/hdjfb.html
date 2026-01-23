@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crypto Fun Land</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- ========== CSS ========== -->
+    <style>
+        body {
+            margin: 0;
+            font-family: "Comic Sans MS", sans-serif;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            text-align: center;
+        }
+
+        header {
+            background: #ffffffaa;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        header button {
+            padding: 10px 20px;
+            border: none;
+            background: white;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        header button:hover {
+            background: #ffe08a;
+        }
+
+        .hidden { display: none; }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            text-shadow: 3px 3px #0003;
+        }
+
+        .card {
+            background: white;
+            width: 300px;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px #0004;
+        }
+
+        input {
+            padding: 10px;
+            width: 80%;
+            border-radius: 8px;
+            border: 1px solid #888;
+        }
+
+        button.big {
+            margin-top: 10px;
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            background: lightgreen;
+        }
+
+        canvas {
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        .coin {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px auto;
+            width: 300px;
+            box-shadow: 0 4px 15px #0002;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .coin button {
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .coin button.buy { background: lightgreen; }
+        .coin button.sell { background: #ff8a8a; }
+    </style>
+
+    <!-- Chart JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<header>
+    <button onclick="showPage('home')">Home</button>
+    <button onclick="showPage('market')">Market</button>
+    <button onclick="showPage('chart')">Balance Chart</button>
+    <button onclick="showPage('login')">Login</button>
+    <button onclick="showPage('signup')">Create Account</button>
+    <button onclick="logout()">Logout</button>
+</header>
+
+<!-- ========== HOME PAGE ========== -->
+<div id="home" class="page">
+    <h1>🌟 Crypto Fun Land 🌟</h1>
+    <div id="welcomeMessage" style="font-size: 1.3rem; color: white;"></div>
+    <div class="card">
+        <h2>Balance:</h2>
+        <h1 id="balanceDisplay">$0</h1>
+    </div>
+</div>
+
+<!-- ========== MARKET PAGE ========== -->
+<div id="market" class="page hidden">
+    <h1>💹 Crypto Market</h1>
+    <div id="coins"></div>
+</div>
+
+<!-- ========== BALANCE CHART PAGE ========== -->
+<div id="chart" class="page hidden">
+    <h1>📈 Balance Over Time</h1>
+    <canvas id="balanceChart" width="350" height="200"></canvas>
+</div>
+
+<!-- ========== LOGIN PAGE ========== -->
+<div id="login" class="page hidden">
+    <h1>🔐 Login</h1>
+    <div class="card">
+        <input id="loginUser" placeholder="Username"><br><br>
+        <input id="loginPass" type="password" placeholder="Password"><br><br>
+        <button class="big" onclick="loginUserFunc()">Login</button>
+        <p id="loginmsg"></p>
+    </div>
+</div>
+
+<!-- ========== SIGNUP PAGE ========== -->
+<div id="signup" class="page hidden">
+    <h1>📝 Create Account</h1>
+    <div class="card">
+        <input id="newUser" placeholder="New Username"><br><br>
+        <input id="newPass" type="password" placeholder="New Password"><br><br>
+        <button class="big" onclick="createAccount()">Create Account</button>
+        <p id="signupmsg"></p>
+    </div>
+</div>
+
+<script>
+
+// ================== PAGE SYSTEM ==================
+function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    document.getElementById(page).classList.remove('hidden');
+    updateWelcome();
+    updateBalance();
+    if(page==='chart'){ updateChart(); }
+    if(page==='market'){ updateMarket(); }
+}
+
+// ================== ACCOUNT SYSTEM ==================
+const MAX_MONEY = 1000000000000000000n;
+
+function clampMoney(value){
+    if(value>MAX_MONEY) return MAX_MONEY;
+    if(value<0n) return 0n;
+    return value;
+}
+
+function createAccount(){
+    let u = document.getElementById("newUser").value;
+    let p = document.getElementById("newPass").value;
+    if(!u||!p){document.getElementById("signupmsg").innerText="❌ Fill everything!"; return;}
+    if(localStorage.getItem("user_"+u)){document.getElementById("signupmsg").innerText="⚠ Username exists!"; return;}
+    let data = {password:p, money:"1000", history:["1000"]}; // start with $1000
+    localStorage.setItem("user_"+u,JSON.stringify(data));
+    document.getElementById("signupmsg").innerText="🎉 Account Created!";
+}
+
+function loginUserFunc(){
+    let u = document.getElementById("loginUser").value;
+    let p = document.getElementById("loginPass").value;
+    let data = JSON.parse(localStorage.getItem("user_"+u)||"{}");
+    if(data.password===p){
+        localStorage.setItem("loggedIn",u);
+        document.getElementById("loginmsg").innerText="🎉 Logged in!";
+        updateWelcome();
+        updateBalance();
+    }else{
+        document.getElementById("loginmsg").innerText="❌ Wrong info!";
+    }
+}
+
+function logout(){
+    localStorage.removeItem("loggedIn");
+    alert("Logged out!");
+    updateWelcome();
+    updateBalance();
+}
+
+function updateWelcome(){
+    let user = localStorage.getItem("loggedIn");
+    document.getElementById("welcomeMessage").innerText = user?`Welcome back, ${user}! 😊`:"You are not logged in.";
+}
+
+// ================== BALANCE ==================
+function updateBalance(){
+    let user = localStorage.getItem("loggedIn");
+    if(!user){document.getElementById("balanceDisplay").innerText="$0"; return;}
+    let data = JSON.parse(localStorage.getItem("user_"+user));
+    document.getElementById("balanceDisplay").innerText="$"+data.money.toString();
+}
+
+// ================== MARKET ==================
+async function fetchPrices() {
+    const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,dogecoin&vs_currencies=usd");
+    const data = await response.json();
+    return data;
+}
+
+async function updateMarket(){
+    const prices = await fetchPrices();
+    const container = document.getElementById("coins");
+    container.innerHTML = "";
+    for(const coin in prices){
+        let price = prices[coin].usd;
+        let div = document.createElement("div");
+        div.className = "coin";
+        div.innerHTML = `
+            <span><strong>${coin.toUpperCase()}</strong>: $${price.toLocaleString()}</span>
+            <span>
+                <button class="buy" onclick="buyCoin('${coin}',${price})">Buy</button>
+                <button class="sell" onclick="sellCoin('${coin}',${price})">Sell</button>
+            </span>
+        `;
+        container.appendChild(div);
+    }
+}
+setInterval(() => {
+    if(!document.getElementById("market").classList.contains("hidden")){
+        updateMarket();
+    }
+}, 5000);
+
+// ================== BUY / SELL ==================
+function buyCoin(coin, price){
+    const user = localStorage.getItem("loggedIn");
+    if(!user){alert("Login first!"); return;}
+    const data = JSON.parse(localStorage.getItem("user_"+user));
+    let money = BigInt(data.money);
+    let amount = 1n;
+    let cost = BigInt(Math.floor(price)) * amount;
+    if(money < cost){alert("Not enough money!"); return;}
+    money -= cost;
+    data.money = money.toString();
+    data[coin] = (BigInt(data[coin]||0n) + amount).toString();
+    data.history.push(money.toString());
+    localStorage.setItem("user_"+user, JSON.stringify(data));
+    updateBalance();
+    updateChart();
+}
+
+function sellCoin(coin, price){
+    const user = localStorage.getItem("loggedIn");
+    if(!user){alert("Login first!"); return;}
+    const data = JSON.parse(localStorage.getItem("user_"+user));
+    let holding = BigInt(data[coin]||0n);
+    if(holding <= 0n){alert("You have none!"); return;}
+    let money = BigInt(data.money);
+    let amount = 1n;
+    money += BigInt(Math.floor(price)) * amount;
+    data.money = money.toString();
+    data[coin] = (holding - amount).toString();
+    data.history.push(money.toString());
+    localStorage.setItem("user_"+user, JSON.stringify(data));
+    updateBalance();
+    updateChart();
+}
+
+// ================== CHART ==================
+let chart=null;
+function updateChart(){
+    let user = localStorage.getItem("loggedIn");
+    if(!user) return;
+    let data = JSON.parse(localStorage.getItem("user_"+user));
+    let labels = data.history.map((_,i)=>i+1);
+    let values = data.history.map(v=>Number(v));
+    let colors = [];
+    for(let i=0;i<values.length;i++){
+        if(i===0){colors.push("green"); continue;}
+        colors.push(values[i]>=values[i-1]?"green":"red");
+    }
+    if(chart) chart.destroy();
+    chart = new Chart(document.getElementById("balanceChart"),{
+        type:"line",
+        data:{
+            labels:labels,
+            datasets:[{
+                label:"Balance Over Time",
+                data:values,
+                borderColor:colors,
+                backgroundColor:"#fff4",
+                borderWidth:3,
+                tension:0.3,
+                fill:true,
+            }]
+        },
+        options:{
+            responsive:true,
+            plugins:{legend:{display:false}},
+            scales:{y:{beginAtZero:true}}
+        }
+    });
+}
+
+// ================== INIT ==================
+updateWelcome();
+updateBalance();
+
+</script>
+
+</body>
+</html>

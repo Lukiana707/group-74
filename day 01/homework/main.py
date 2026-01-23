@@ -1,24 +1,32 @@
-name = "Lukiana"
-Parent1 = "ia"
-sibling = "monica"
+# 2)ჩაეხუტეთ მშობლებს
+# hug
 
-print(name)
-print(Parent1)
-print(sibling)
+# 3)შექმენით პითნის ფაილი, შემდეგ მასში შექმენით 4 ცვლადი, და 4 ივეში შეინახეთ განსხვავებული მნიშვნელობა და დაარქვით განსხვავებული სახელები
+
+name = "hello"
+
+name2 = "lukiana"
+
+name3 = "bold"
+
+name4 = "hi"
 
 
-name1 = "Lukiana"
-name2 = "monica"
-name3 = "ia"
 
-print(name1)
-print(name2)
-print(name3)
+# 4)ყოველდღე გააკეთეთ 15 push up
 
-number1 = 14
-number2 = 20
-number3 = 27
+#i did it 
 
-print (number1)
-print (number2)
-print (number3)
+# 5)შექმენით 4 ცვლადი და მასში შეინახეთ თქვენი ოჯახის წევრების სახელები, შემდეგ დაპრინტეთ
+
+mom = "Ia"
+
+Sibling = "Monica"
+
+dad = "revaz"
+
+Me = "Lukiana"
+
+# 6)უყურეთ ჩანაწერს 
+
+#

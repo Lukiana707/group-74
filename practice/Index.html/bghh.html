@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MyTube</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    body { margin:0; font-family: Arial,sans-serif; background:#f9f9f9; }
+    header { display:flex; align-items:center; gap:15px; padding:10px 20px; background:white; border-bottom:1px solid #ddd; position:sticky; top:0; z-index:10; }
+    .logo { font-size:20px; font-weight:bold; color:red; }
+    .search-box { display:flex; flex:1; max-width:600px; }
+    .search-box input { flex:1; padding:8px; font-size:16px; border:1px solid #ccc; border-right:none; }
+    .search-box button { padding:8px 16px; border:1px solid #ccc; background:#f0f0f0; cursor:pointer; }
+    .container { display:flex; gap:20px; padding:20px; }
+    .main { flex:3; }
+    .video-player { width:100%; aspect-ratio:16/9; background:black; display:flex; align-items:center; justify-content:center; color:white; font-size:18px; }
+    .title { font-size:20px; font-weight:bold; margin:15px 0 5px; }
+    .meta { color:#555; font-size:14px; margin-bottom:10px; }
+    .actions button { margin-right:10px; padding:6px 12px; border:none; background:none; font-size:18px; cursor:pointer; }
+    .sidebar { flex:1.5; display:flex; flex-direction:column; gap:20px; overflow-x:hidden; }
+    .section { margin-bottom:20px; }
+    .section h3 { margin:0 0 10px 0; }
+    .video-item, .short-item, .movie-item { display:flex; gap:10px; cursor:pointer; align-items:center; margin-bottom:10px; }
+    .thumb { width:120px; height:70px; background:#ccc; flex-shrink:0; }
+    .short-thumb { width:60px; height:100px; background:#ccc; flex-shrink:0; }
+    .movie-thumb { width:100px; height:60px; background:#999; flex-shrink:0; }
+    .video-item p, .short-item p, .movie-item p { margin:0; font-size:14px; font-weight:bold; }
+    .video-item span, .short-item span, .movie-item span { font-size:12px; color:#555; }
+    .scroll-container { display:flex; gap:10px; overflow-x:auto; padding-bottom:10px; }
+    @media (max-width:900px) {
+      .container { flex-direction:column; }
+      .sidebar { flex-direction:column; }
+      .video-item, .short-item, .movie-item { flex-direction:row; align-items:center; }
+      .thumb { width:100px; height:60px; }
+      .short-thumb { width:50px; height:90px; }
+      .movie-thumb { width:80px; height:50px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">▶ MyTube</div>
+  <div class="search-box">
+    <input id="searchInput" placeholder="Search YouTube">
+    <button onclick="searchYouTube()">Search</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="main">
+    <div class="video-player" id="videoPlayer">VIDEO PLAYER</div>
+
+    <div style="margin:10px 0;">
+      <input id="videoURL" placeholder="Paste YouTube link here" style="width:70%; padding:6px;">
+      <button onclick="loadVideo()">Load Video</button>
+    </div>
+
+    <div class="title" id="videoTitle">Video Title</div>
+    <div class="meta" id="videoMeta">Channel Name • 123K views</div>
+
+    <div class="actions">
+      <button onclick="alert('Liked!')">👍</button>
+      <button onclick="alert('Disliked!')">👎</button>
+    </div>
+  </div>
+
+  <div class="sidebar">
+
+    <!-- Recommended Videos -->
+    <div class="section">
+      <h3>Recommended</h3>
+      <div class="video-item" onclick="changeVideo('https://www.youtube.com/watch?v=dQw4w9WgXcQ','Never Gonna Give You Up','Rick Astley')">
+        <div class="thumb"></div>
+        <div><p>Never Gonna Give You Up</p><span>Rick Astley</span></div>
+      </div>
+      <div class="video-item" onclick="changeVideo('https://youtu.be/3JZ_D3ELwOQ','Numb','Linkin Park')">
+        <div class="thumb"></div>
+        <div><p>Numb</p><span>Linkin Park</span></div>
+      </div>
+    </div>
+
+    <!-- Shorts -->
+    <div class="section">
+      <h3>Shorts</h3>
+      <div class="scroll-container">
+        <div class="short-item" onclick="changeVideo('https://youtu.be/VIDEO_ID_1','Short 1','Channel A')">
+          <div class="short-thumb"></div>
+          <div><p>Short 1</p><span>Channel A</span></div>
+        </div>
+        <div class="short-item" onclick="changeVideo('https://youtu.be/VIDEO_ID_2','Short 2','Channel B')">
+          <div class="short-thumb"></div>
+          <div><p>Short 2</p><span>Channel B</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Movies Section -->
+    <div class="section">
+      <h3>Movies</h3>
+      <div class="scroll-container" id="moviesContainer">
+        <!-- Movies added by user will appear here -->
+      </div>
+      <input id="movieURL" placeholder="Paste movie URL here" style="width:80%; padding:4px; margin-top:5px;">
+      <input id="movieTitle" placeholder="Movie Title" style="width:80%; padding:4px; margin-top:5px;">
+      <button onclick="addMovie()">Add Movie</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Load saved movies from localStorage when page loads
+  window.onload = function() {
+    const savedMovies = JSON.parse(localStorage.getItem("myMovies") || "[]");
+    savedMovies.forEach(m => createMovieItem(m.url, m.title));
+  };
+
+  function searchYouTube() {
+    const q = document.getElementById("searchInput").value;
+    if (!q) return;
+    window.open("https://www.youtube.com/results?search_query=" + encodeURIComponent(q), "_blank");
+  }
+
+  function loadVideo() {
+    const url = document.getElementById("videoURL").value;
+    if (!url) return alert("Paste a valid YouTube URL!");
+    changeVideo(url, "User Video","Unknown Channel");
+  }
+
+  function extractVideoID(url) {
+    let match = url.match(/(?:youtube\.com\/.*v=|youtu\.be\/)([^&\?]+)/);
+    if (!match) return null;
+    return match[1];
+  }
+
+  function changeVideo(url, title="User Video", channel="Unknown Channel") {
+    const videoID = extractVideoID(url);
+    if (!videoID) return alert("Invalid YouTube URL!");
+    const embedHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoID}" frameborder="0" allowfullscreen></iframe>`;
+    document.getElementById("videoPlayer").innerHTML = embedHTML;
+    document.getElementById("videoTitle").innerText = title;
+    document.getElementById("videoMeta").innerText = channel + " • Unknown views";
+  }
+
+  function addMovie() {
+    const url = document.getElementById("movieURL").value;
+    const title = document.getElementById("movieTitle").value || "Movie";
+    if (!url) return alert("Paste a valid movie URL!");
+    
+    // Save to localStorage
+    const savedMovies = JSON.parse(localStorage.getItem("myMovies") || "[]");
+    savedMovies.push({url, title});
+    localStorage.setItem("myMovies", JSON.stringify(savedMovies));
+
+    createMovieItem(url, title);
+
+    // Clear inputs
+    document.getElementById("movieURL").value = "";
+    document.getElementById("movieTitle").value = "";
+  }
+
+  function createMovieItem(url, title) {
+    const container = document.getElementById("moviesContainer");
+    const div = document.createElement("div");
+    div.className = "movie-item";
+    div.innerHTML = `<div class="movie-thumb"></div><div><p>${title}</p><span>Movie</span></div>`;
+    div.onclick = () => changeVideo(url, title, "Movie");
+    container.appendChild(div);
+  }
+</script>
+
+</body>
+</html>

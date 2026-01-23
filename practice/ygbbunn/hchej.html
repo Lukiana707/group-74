@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Real Crypto Dashboard with Zoom</title>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<style>
+body { font-family: Arial; background:#121212; color:#fff; margin:0; padding:0; }
+.container { max-width:1200px; margin:auto; padding:20px; }
+h1,h2 { text-align:center; }
+#coin-search { width:80%; padding:10px; margin:10px auto; display:block; border-radius:5px; border:none;}
+.coin-list { display:flex; flex-wrap:wrap; justify-content:center; max-height:200px; overflow-y:auto; margin:10px 0; }
+.coin { background:#1e1e1e; padding:10px 20px; margin:5px; border-radius:8px; cursor:pointer; flex:0 0 100px; text-align:center;}
+.coin:hover { background:#00b894; }
+#chart { margin-top:20px; }
+input, button, select { padding:10px; margin:5px; border-radius:5px; border:none; }
+button { background:#00b894; color:white; cursor:pointer; }
+button:hover { background:#019e6a; }
+.trade-panel { margin-top:20px; text-align:center; }
+#balance, #portfolio { margin-top:10px; }
+.positive { color:#00ff00; }
+.negative { color:#ff4d4d; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Super Real Crypto Dashboard with Zoom</h1>
+
+<div id="auth">
+<h2>Login / Register</h2>
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="register()">Register</button>
+<button onclick="login()">Login</button>
+</div>
+
+<div id="dashboard" style="display:none;">
+<h2 id="selected-coin">Select a coin</h2>
+<input type="text" id="coin-search" placeholder="Search coin..." oninput="filterCoins()">
+<div class="coin-list" id="coin-list"></div>
+
+<div>
+<label for="timeframe">Chart timeframe:</label>
+<select id="timeframe" onchange="changeTimeframe()">
+<option value="1m">1 Minute</option>
+<option value="5m">5 Minutes</option>
+<option value="15m">15 Minutes</option>
+<option value="1h">1 Hour</option>
+<option value="1d">1 Day</option>
+</select>
+</div>
+
+<div id="chart"></div>
+
+<div class="trade-panel">
+<input type="number" id="amount" placeholder="Amount USD">
+<button onclick="trade('buy')">Buy</button>
+<button onclick="trade('sell')">Sell</button>
+<div id="balance"></div>
+<div id="portfolio"></div>
+</div>
+
+<button onclick="logout()">Logout</button>
+</div>
+</div>
+
+<script>
+let currentUser=null;
+let coins=[], coinSymbols={}, balances={}, currentCoin=null, chart=null, series=[], ws=null;
+let timeframe='1m';
+
+// ---------- Auth ----------
+function register(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  if(!email||!password) return alert("Enter email & password");
+  const users=JSON.parse(localStorage.getItem("users")||"[]");
+  if(users.find(u=>u.email===email)) return alert("User exists");
+  users.push({email,password,balance:1000,coins:{}});
+  localStorage.setItem("users",JSON.stringify(users));
+  alert("Registered!");
+}
+
+function login(){
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+  const users=JSON.parse(localStorage.getItem("users")||"[]");
+  const user=users.find(u=>u.email===email && u.password===password);
+  if(!user) return alert("Invalid login");
+  currentUser=user;
+  balances=user.coins || {};
+  document.getElementById("auth").style.display="none";
+  document.getElementById("dashboard").style.display="block";
+  loadCoins();
+}
+
+// ---------- Logout ----------
+function logout(){
+  if(currentUser){
+    const users=JSON.parse(localStorage.getItem("users")||"[]");
+    const index=users.findIndex(u=>u.email===currentUser.email);
+    if(index!==-1){
+      users[index].coins=balances;
+      users[index].balance=currentUser.balance;
+    }
+    localStorage.setItem("users",JSON.stringify(users));
+  }
+  currentUser=null;
+  if(chart) chart.destroy();
+  if(ws) ws.close();
+  document.getElementById("auth").style.display="block";
+  document.getElementById("dashboard").style.display="none";
+  currentCoin=null;
+  series=[];
+}
+
+// ---------- Load all coins ----------
+async function loadCoins(){
+  const res=await fetch("https://api.binance.com/api/v3/ticker/price");
+  const data=await res.json();
+  coins = data.filter(c=>c.symbol.endsWith("USDT")).map(c=>c.symbol.toLowerCase());
+  coinSymbols = {};
+  coins.forEach(c=>coinSymbols[c]=c.toUpperCase());
+  renderCoinList(coins);
+  renderPortfolio();
+}
+
+// ---------- Render coin list ----------
+function renderCoinList(list){
+  const listDiv=document.getElementById("coin-list");
+  listDiv.innerHTML="";
+  list.forEach(c=>{
+    const div=document.createElement("div");
+    div.className="coin";
+    div.innerText=c.replace("usdt","").toUpperCase();
+    div.onclick=()=>selectCoin(c);
+    listDiv.appendChild(div);
+  });
+}
+
+// ---------- Filter coins ----------
+function filterCoins(){
+  const query=document.getElementById("coin-search").value.toLowerCase();
+  const filtered=coins.filter(c=>c.includes(query));
+  renderCoinList(filtered);
+}
+
+// ---------- Select coin ----------
+function selectCoin(coin){
+  currentCoin=coin;
+  document.getElementById("selected-coin").innerText=coinSymbols[coin];
+  series=[];
+  if(chart) chart.destroy();
+  chart=new ApexCharts(document.querySelector("#chart"),{
+    chart:{
+      type:'candlestick',
+      height:400,
+      toolbar:{show:true, tools:{download:true, selection:true, zoom:true, zoomin:true, zoomout:true, pan:true, reset:true}}
+    },
+    series:[{data:series}],
+    xaxis:{type:'datetime'},
+    yaxis:{tooltip:{enabled:true}}
+  });
+  chart.render();
+  if(ws) ws.close();
+  connectWS();
+  updateBalance();
+}
+
+// ---------- Change timeframe ----------
+function changeTimeframe(){
+  timeframe=document.getElementById("timeframe").value;
+  if(currentCoin){
+    if(ws) ws.close();
+    series=[];
+    chart.updateSeries([{data:series}]);
+    connectWS();
+  }
+}
+
+// ---------- Trade ----------
+async function trade(type){
+  if(!currentCoin) return alert("Select a coin first");
+  const amount=parseFloat(document.getElementById("amount").value);
+  if(!amount||amount<=0) return alert("Enter valid amount");
+  const price=await getCurrentPrice(currentCoin);
+  balances[currentCoin]=balances[currentCoin]||0;
+  if(type==="buy"){
+    if(currentUser.balance<amount) return alert("Not enough USD");
+    currentUser.balance-=amount;
+    balances[currentCoin]+=(amount/price);
+  } else {
+    if(balances[currentCoin]*price<amount) return alert("Not enough coin balance");
+    balances[currentCoin]-=(amount/price);
+    currentUser.balance+=amount;
+  }
+  updateBalance();
+  renderPortfolio();
+}
+
+// ---------- Update balance ----------
+async function updateBalance(){
+  if(!currentCoin) return;
+  const price=await getCurrentPrice(currentCoin);
+  balances[currentCoin]=balances[currentCoin]||0;
+  const changeClass = await get24hChangeClass(currentCoin);
+  document.getElementById("balance").innerHTML=
+    `USD: $${currentUser.balance.toFixed(2)} | ${currentCoin.replace("usdt","").toUpperCase()}: ${balances[currentCoin].toFixed(6)} (~$${(balances[currentCoin]*price).toFixed(2)}) | Price: <span class="${changeClass}">$${price}</span>`;
+}
+
+// ---------- Render Portfolio ----------
+async function renderPortfolio(){
+  let html=`<h3>Portfolio:</h3>`;
+  let totalUSD=currentUser.balance;
+  for(const coin in balances){
+    const price=await getCurrentPrice(coin);
+    totalUSD+=balances[coin]*price;
+    html+=`${coin.replace("usdt","").toUpperCase()}: ${balances[coin].toFixed(6)} (~$${(balances[coin]*price).toFixed(2)})<br>`;
+  }
+  html+=`<b>Total Portfolio Value: $${totalUSD.toFixed(2)}</b>`;
+  document.getElementById("portfolio").innerHTML=html;
+}
+
+// ---------- Binance WebSocket ----------
+function connectWS(){
+  if(!currentCoin) return;
+  ws=new WebSocket(`wss://stream.binance.com:9443/ws/${currentCoin}@kline_${timeframe}`);
+  ws.onmessage=(event)=>{
+    const msg=JSON.parse(event.data).k;
+    const candle={x:new Date(msg.t),y:[parseFloat(msg.o),parseFloat(msg.h),parseFloat(msg.l),parseFloat(msg.c)]};
+    series.push(candle);
+    if(series.length>200) series.shift(); // keep enough history for zoom
+    chart.updateSeries([{data:series}]);
+  }
+}
+
+// ---------- Get current price ----------
+async function getCurrentPrice(coin){
+  const res=await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${coin.toUpperCase()}`);
+  const data=await res.json();
+  return parseFloat(data.price);
+}
+
+// ---------- Get 24h change class ----------
+async function get24hChangeClass(coin){
+  const res=await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${coin.toUpperCase()}`);
+  const data=await res.json();
+  return parseFloat(data.priceChangePercent)>=0?'positive':'negative';
+}
+</script>
+</body>
+</html>

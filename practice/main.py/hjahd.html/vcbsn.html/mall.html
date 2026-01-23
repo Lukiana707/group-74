@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cooking Mall Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #fcecc9;
+    }
+    #game-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .hidden {
+      display: none;
+    }
+    .btn {
+      padding: 10px 20px;
+      margin: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 8px;
+      border: none;
+    }
+    .character-btn { background-color: #ffb347; }
+    .nav-btn { background-color: #87ceeb; }
+    .shop-btn { background-color: #d1a3ff; }
+    .action-btn { background-color: #90ee90; }
+    .scene {
+      margin-top: 20px;
+      padding: 20px;
+      border: 2px dashed #333;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+      background-color: #fff8dc;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-screen">
+    <h1>Choose your character</h1>
+    <button class="btn character-btn" onclick="selectCharacter('Chef 🍳')">Chef 🍳</button>
+    <button class="btn character-btn" onclick="selectCharacter('Baker 🧁')">Baker 🧁</button>
+    <button class="btn character-btn" onclick="selectCharacter('Griller 🍖')">Griller 🍖</button>
+
+    <div id="mall-scene" class="scene hidden">
+      <h2>Welcome to the Mall!</h2>
+      <p>You are <span id="chosen-character"></span>. 💰 Money: $<span id="money">50</span></p>
+      <button class="btn nav-btn" onclick="showMap()">Open Map</button>
+    </div>
+
+    <div id="map-scene" class="scene hidden">
+      <h2>🗺️ Where do you want to go?</h2>
+      <button class="btn shop-btn" onclick="goTo('Food Stand 🥕')">Food Stand 🥕</button>
+      <button class="btn shop-btn" onclick="goTo('Carsup 🚗')">Carsup 🚗</button>
+      <button class="btn shop-btn" onclick="goTo('Dounting 🍩')">Dounting 🍩</button>
+      <button class="btn shop-btn" onclick="goTo('Bank 🏦')">Bank 🏦</button>
+      <button class="btn shop-btn" onclick="goTo('Cooking Station 🧑‍🍳')">Cooking Station 🧑‍🍳</button>
+      <button class="btn shop-btn" onclick="goTo('Your Shop 🏪')">Your Shop 🏪</button>
+      <button class="btn nav-btn" onclick="backToMall()">Back to Mall</button>
+    </div>
+
+    <div id="location-scene" class="scene hidden">
+      <h2 id="location-title"></h2>
+      <div id="location-content"></div>
+      <button class="btn nav-btn" onclick="showMap()">Back to Map</button>
+    </div>
+  </div>
+
+  <script>
+    let money = 50;
+    let inventory = [];
+
+    function updateMoneyDisplay() {
+      document.getElementById('money').textContent = money;
+    }
+
+    function selectCharacter(name) {
+      document.querySelector('h1').classList.add('hidden');
+      document.querySelectorAll('.character-btn').forEach(btn => btn.classList.add('hidden'));
+      document.getElementById('mall-scene').classList.remove('hidden');
+      document.getElementById('chosen-character').textContent = name;
+    }
+
+    function showMap() {
+      document.getElementById('mall-scene').classList.add('hidden');
+      document.getElementById('location-scene').classList.add('hidden');
+      document.getElementById('map-scene').classList.remove('hidden');
+    }
+
+    function goTo(location) {
+      document.getElementById('map-scene').classList.add('hidden');
+      document.getElementById('location-scene').classList.remove('hidden');
+      document.getElementById('location-title').textContent = location;
+      const content = document.getElementById('location-content');
+      content.innerHTML = '';
+
+      if (location.includes('Food Stand')) {
+        content.innerHTML = `
+          <p>Buy fruits and veggies ($5 each):</p>
+          <button class="btn action-btn" onclick="buyItem('Apple')">Apple 🍎</button>
+          <button class="btn action-btn" onclick="buyItem('Carrot')">Carrot 🥕</button>
+          <button class="btn action-btn" onclick="buyItem('Milk')">Milk 🥛</button>
+        `;
+      } else if (location.includes('Carsup')) {
+        content.innerHTML = `
+          <p>Car shop (just for fun!):</p>
+          <button class="btn action-btn" onclick="buyItem('Mini Car')">Mini Car 🚗 ($20)</button>
+          <button class="btn action-btn" onclick="buyItem('Race Car')">Race Car 🏎️ ($30)</button>
+        `;
+      } else if (location.includes('Dounting')) {
+        content.innerHTML = `
+          <p>Buy donuts and ingredients:</p>
+          <button class="btn action-btn" onclick="buyItem('Donut')">Donut 🍩 ($5)</button>
+          <button class="btn action-btn" onclick="buyItem('Sugar')">Sugar 🍬 ($5)</button>
+        `;
+      } else if (location.includes('Bank')) {
+        content.innerHTML = `
+          <p>💰 Your balance: $${money}</p>
+          <button class="btn action-btn" onclick="earnMoney(10)">Deposit $10</button>
+          <button class="btn action-btn" onclick="earnMoney(20)">Withdraw $20</button>
+        `;
+      } else if (location.includes('Cooking Station')) {
+        content.innerHTML = `
+          <p>Combine Apple + Milk to make Milkshake 🍹</p>
+          <button class="btn action-btn" onclick="craftItem('Milkshake')">Make Milkshake</button>
+        `;
+      } else if (location.includes('Your Shop')) {
+        content.innerHTML = `
+          <p>Sell crafted items:</p>
+          <button class="btn action-btn" onclick="sellItem('Milkshake', 15)">Sell Milkshake 🍹 ($15)</button>
+        `;
+      }
+    }
+
+    function buyItem(item) {
+      let cost = 5;
+      if (item.includes('Car')) cost = item === 'Race Car' ? 30 : 20;
+      if (money >= cost) {
+        money -= cost;
+        inventory.push(item);
+        updateMoneyDisplay();
+        alert(`${item} added to inventory!`);
+      } else {
+        alert("Not enough money!");
+      }
+    }
+
+    function earnMoney(amount) {
+      money += amount;
+      updateMoneyDisplay();
+      alert(`You received $${amount}`);
+    }
+
+    function craftItem(product) {
+      if (product === 'Milkshake') {
+        if (inventory.includes('Apple') && inventory.includes('Milk')) {
+          inventory.push('Milkshake');
+          inventory = inventory.filter(i => i !== 'Apple' && i !== 'Milk');
+          alert("You made a Milkshake 🍹!");
+        } else {
+          alert("You need Apple and Milk!");
+        }
+      }
+    }
+
+    function sellItem(item, price) {
+      if (inventory.includes(item)) {
+        inventory = inventory.filter(i => i !== item);
+        money += price;
+        updateMoneyDisplay();
+        alert(`You sold ${item} for $${price}`);
+      } else {
+        alert(`You don't have ${item} to sell`);
+      }
+    }
+  </script>
+</body>
+</html>

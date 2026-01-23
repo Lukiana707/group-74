@@ -1,6 +1,6 @@
-name1 = int(input("please enter your name "))
+name = int(input("please enter your name "))
 
-last_name2 = int(input("please enter your last name "))
+last_name = int(input("please enter your last name "))
 
 
-print(name1 + last_name2)
+print(name + last_name)
