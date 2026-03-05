@@ -1,0 +1,29 @@
+.h {
+    text-decoration:  underline overline line-through solid red;
+
+}
+
+.hi {
+    text-decoration: underline ;
+    text-underline-offset: -10px;
+}
+
+#hello{
+    text-transform: uppercase;
+
+}
+
+#hai{
+    text-transform: capitalize;
+
+}
+
+#hey {
+    text-transform: lowercase;
+}
+
+#shadow{
+    text-shadow: 4px 4px 2px rgba(0,0,0,0.6);
+}
+
+

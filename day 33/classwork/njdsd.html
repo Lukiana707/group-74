@@ -1,0 +1,85 @@
+<!-- - Create a table that contains the names of American, German, and Japanese cars.
+Your task is to change the style of the even-numbered rows and make them slightly bold using the pseudo‑selector you learned today.
+
+- Create a table that includes information about you and two of your friends: age, last name, and first name.
+Your task is that when the mouse hovers over the odd-numbered rows, the background color of those odd rows should change.
+Choose the color according to your taste.
+
+- Create an unordered list, and your task is to number it using Georgian letters.
+
+- Create an ordered list of your daily tasks.
+Your task is to use Roman numerals for numbering, and then move the entire list to the center of the webpage, making sure the numbering stays centered with it. -->
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="hello.css">
+  <title>day 33</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 20%;
+    }
+
+    th, td {
+      border: 1px solid #ffea07;
+      text-align: left;
+    }
+
+    
+    tr:nth-child(even) {
+      font-weight: 600;      
+      background-color: #ffdd00;
+    }
+  </style>
+</head>
+<body>
+
+  <h3 id="helloo">car brands from diffrent countrys</h3>
+  <table>
+    <tr>
+      <td>america</td>
+      <td>Ford</td>
+    </tr>
+    <tr>
+      <td>Germany</td>
+      <td>bmw</td>
+    </tr>
+    <tr>
+      <td>Japan</td>
+      <td>honda</td>
+    </tr>
+  </table><br><br>
+
+<table>
+  <tr>
+    <td>hello my name is Lukiana  and my last name is Mamniashvili</td>
+    <td>I love art so much</td>
+    <td>i am 10 years old</td>
+  </tr>
+  <tr>
+    <td>hello my name is Mazeedah and my last name is agbalaya</td>
+    <td>i am 10 years old</td>
+    <td>i love CANDY</td>
+  </tr>
+  <tr>
+    <td>hello i am Annabelle and my last name is ansah </td>
+    <td>i am 10</td>
+    <td>I like working out</td>
+  </tr>
+</table>
+<ul>  <li>wake up</li>
+  <li>brush your teeth</li>
+  <li>get dressed</li>
+  <li>pack you lunch</li>
+  <li>go to the school bus</li>
+  <li>learn at school</li>
+  <li>after school do you homework</li></ul>
+
+</body>
+
+</html>
+

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Lily's Salon Full System</title>
+<style>
+body{
+    font-family: Arial;
+    text-align:center;
+    background:#fff0f5;
+}
+.container{
+    background:white;
+    padding:30px;
+    width:500px;
+    margin:40px auto;
+    border-radius:15px;
+    box-shadow:0 0 20px rgba(0,0,0,0.15);
+}
+input, select{
+    padding:10px;
+    margin:8px;
+    width:85%;
+}
+button{
+    padding:10px 20px;
+    margin:6px;
+    background:#ff4d88;
+    color:white;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+}
+button:hover{
+    background:#e6005c;
+}
+.listBox{
+    text-align:left;
+    max-height:200px;
+    overflow:auto;
+    background:#f9f9f9;
+    padding:10px;
+    border-radius:10px;
+}
+</style>
+</head>
+<body>
+
+<div class="container" id="createBox">
+<h2>Create Your Lily's Salon Account 🌸</h2>
+<input type="text" id="userNameInput" placeholder="Enter your name"><br>
+<button onclick="createAccount()">Create Account</button>
+
+<h3>Or Login:</h3>
+<input type="text" id="loginId" placeholder="Enter ID"><br>
+<input type="password" id="loginPass" placeholder="Enter Password"><br>
+<button onclick="login()">Login</button>
+
+<p id="message"></p>
+<p id="lastAccount"></p>
+</div>
+
+<div class="container" id="userBox" style="display:none;">
+<h2>Welcome <span id="showUserName"></span> 🌸</h2>
+<p><b>Your ID:</b> <span id="userIdShow"></span></p>
+<p><b>Your Password:</b> <span id="userPassShow"></span></p>
+<p><b>Balance:</b> $<span id="userMoney"></span></p>
+<p><b>Total Spent:</b> $<span id="totalSpent"></span></p>
+
+<h3>Book a Service 💇‍♀️💅</h3>
+<select id="serviceSelect">
+  <option value="20">Haircut - $20</option>
+  <option value="15">Manicure - $15</option>
+  <option value="25">Makeup - $25</option>
+</select><br>
+<button onclick="bookService()">Book Service</button>
+
+<h3>Spending History</h3>
+<div class="listBox" id="userHistory"></div>
+
+<input type="number" id="amount" placeholder="Use Money"><br>
+<button onclick="useMoney()">Use Money</button>
+<button onclick="logout()">Logout</button>
+</div>
+
+<div class="container" id="adminBox" style="display:none;">
+<h2>👑 ADMIN PANEL</h2>
+<p><b>Admin Balance:</b> $<span id="adminMoney"></span></p>
+<p><b>Total Earned From Users:</b> $<span id="totalEarned"></span></p>
+
+<h3>All Users</h3>
+<div class="listBox" id="userList"></div>
+<button onclick="logout()">Logout</button>
+</div>
+
+<script>
+let currentUser = null;
+
+// Setup admin if not exist
+function setupAdmin(){
+    let accounts = JSON.parse(localStorage.getItem("accounts")) || {};
+    if(!accounts["ADMIN"]){
+        accounts["ADMIN"] = {password:"admin123", money:10000000, earned:0, history:[]};
+    }
+    localStorage.setItem("accounts", JSON.stringify(accounts));
+}
+setupAdmin();
+
+// Generate ID and password
+function generateID(){ return Math.floor(100000+Math.random()*900000).toString(); }
+function generatePass(){ return Math.random().toString(36).substring(2,10); }
+
+// Create account (name input)
+function createAccount(){
+    let name=document.getElementById("userNameInput").value.trim();
+    if(!name){alert("Enter your name!"); return;}
+    let id=generateID();
+    let pass=generatePass();
+    let accounts=JSON.parse(localStorage.getItem("accounts"));
+    accounts[id]={name:name,password:pass,money:120,spent:0,history:[]};
+    localStorage.setItem("accounts",JSON.stringify(accounts));
+    document.getElementById("message").innerHTML="Account created! 🆔 ID: <b>"+id+"</b> | Password: <b>"+pass+"</b>";
+    document.getElementById("lastAccount").innerHTML="Save your credentials! ID: "+id+" | Password: "+pass;
+}
+
+// Login
+function login(){
+    let id=document.getElementById("loginId").value;
+    let pass=document.getElementById("loginPass").value;
+    let accounts=JSON.parse(localStorage.getItem("accounts"));
+    if(accounts[id] && accounts[id].password===pass){
+        currentUser=id;
+        document.getElementById("createBox").style.display="none";
+        if(id==="ADMIN"){document.getElementById("adminBox").style.display="block"; loadAdmin();}
+        else{document.getElementById("userBox").style.display="block"; loadUser();}
+    } else {document.getElementById("message").innerText="Wrong ID or Password!";}
+}
+
+// Load user panel
+function loadUser(){
+    let accounts=JSON.parse(localStorage.getItem("accounts"));
+    let user=accounts[currentUser];
+    document.getElementById("showUserName").innerText=user.name;
+    document.getElementById("userIdShow").innerText=currentUser;
+    document.getElementById("userPassShow").innerText=user.password;
+    document.getElementById("userMoney").innerText=user.money;
+    document.getElementById("totalSpent").innerText=user.spent;
+    let hist=document.getElementById("userHistory"); hist.innerHTML="";
+    user.history.slice().reverse().forEach(i=>{hist.innerHTML+="<p>"+i+"</p>";});
+}
+
+// Load admin panel
+function loadAdmin(){
+    let accounts=JSON.parse(localStorage.getItem("accounts"));
+    let admin=accounts["ADMIN"];
+    document.getElementById("adminMoney").innerText=admin.money;
+    document.getElementById("totalEarned").innerText=admin.earned;
+    let list=document.getElementById("userList"); list.innerHTML="";
+    for(let id in accounts){if(id!=="ADMIN"){
+        list.innerHTML+="<p>ID:"+id+" | Balance:$"+accounts[id].money+" | Spent:$"+accounts[id].spent+"</p>";}}
+}
+
+// User spends money manually
+function useMoney(){
+    let amount=parseInt(document.getElementById("amount").value);
+    let accounts=JSON.parse(localStorage.getItem("accounts"));
+    if(amount>0 && amount<=accounts[currentUser].money){
+        accounts[currentUser].money-=amount;
+        accounts[currentUser].spent+=amount;
+        accounts[currentUser].history.push("Spent $"+amount+" manually");
+        accounts["ADMIN"].money+=amount;
+        accounts["ADMIN"].earned+=amount;
+        accounts["ADMIN"].history.push("Received $"+amount+" from "+currentUser);
+        localStorage.setItem("accounts",JSON.stringify(accounts));
+        loadUser();
+    } else {alert("Not enough money!");}
+}
+
+// Book service
+function bookService(){
+    let sel=document.getElementById("serviceSelect");
+    let price=parseInt(sel.value);
+    let accounts=JSON.parse(localStorage.getItem("accounts"));
+    if(price<=accounts[currentUser].money){
+        accounts[currentUser].money-=price;
+        accounts[currentUser].spent+=price;
+        accounts[currentUser].history.push("Booked "+sel.options[sel.selectedIndex].text);
+        accounts["ADMIN"].money+=price;
+        accounts["ADMIN"].earned+=price;
+        accounts["ADMIN"].history.push("Received $"+price+" from "+currentUser+" (booking)");
+        localStorage.setItem("accounts",JSON.stringify(accounts));
+        loadUser();
+    } else {alert("Not enough money for booking!");}
+}
+
+// Logout
+function logout(){
+    currentUser=null;
+    document.getElementById("createBox").style.display="block";
+    document.getElementById("userBox").style.display="none";
+    document.getElementById("adminBox").style.display="none";
+}
+</script>
+</body>
+</html>

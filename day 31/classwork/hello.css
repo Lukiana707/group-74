@@ -1,0 +1,33 @@
+a {
+    font-size: 10px;
+    color: orange;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+
+a:hover {
+    color: yellow;
+    font-size: 20px;
+    background-color: red;
+}
+
+#hellos:active{
+    color: aqua;
+    background-color: red;
+
+}
+
+
+.hellloo:visited{
+    color: black;
+    size: 10px;
+
+}
+
+.hellloo:link{
+    color: red;
+    size: 20px;
+}
+
+

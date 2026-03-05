@@ -1,0 +1,31 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+#mainDiv {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+}
+
+h1 {
+    font-size: 3rem;
+    background-image: url("./oranges-main-1515525122.avif");
+    background-position: bottom right;
+
+    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
+}
+
+#decoration {
+    background-image: url("./oranges-main-1515525122.avif");
+    height: 5px;
+}

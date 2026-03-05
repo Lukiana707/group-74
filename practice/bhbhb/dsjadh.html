@@ -1,0 +1,126 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Do You Love Hamsters?</title>
+  <style>
+    body {
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffe6ee;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    #container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+
+    h1 {
+      color: #ff4d6d;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 20px;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: transform 0.3s ease;
+    }
+
+    #yes {
+      background: #ff4d6d;
+      color: white;
+      font-size: 20px;
+      padding: 15px 30px;
+    }
+
+    #no {
+      background: #ddd;
+      color: black;
+      font-size: 20px;
+      padding: 15px 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="container">
+    <h1 id="question">Do you love Hamsters?</h1>
+
+    <div class="buttons">
+      <button id="yes">Yes</button>
+      <button id="no">No</button>
+    </div>
+  </div>
+
+  <script>
+    let yesSize = 1;
+    let noSize = 1;
+    let noClicks = 0;
+
+    const messages = [
+      "Really?",
+      "Why not?",
+      "Please say yes 🥺",
+      "Be honest 😭",
+      "Come on...",
+      "I know you do 💗",
+      "Just click yes already 😳",
+      "pleaseee i knew you love themmm",
+      "just why not ",
+      "did they hurt you"
+    ];
+
+    const yesBtn = document.getElementById("yes");
+    const noBtn = document.getElementById("no");
+    const question = document.getElementById("question");
+    const container = document.getElementById("container");
+
+    noBtn.addEventListener("click", () => {
+      question.textContent = messages[Math.min(noClicks, messages.length - 1)];
+      noClicks++;
+
+      // smooth growth (NOT 2x)
+      yesSize += 0.25;
+      noSize -= 0.1;
+
+      yesBtn.style.transform = `scale(${yesSize})`;
+      noBtn.style.transform = `scale(${Math.max(noSize, 0.2)})`;
+
+      if (yesSize >= 5) {
+        yesBtn.style.position = "fixed";
+        yesBtn.style.top = "0";
+        yesBtn.style.left = "0";
+        yesBtn.style.width = "100vw";
+        yesBtn.style.height = "100vh";
+        yesBtn.style.fontSize = "40px";
+        yesBtn.textContent = "YES 💖";
+        noBtn.style.display = "none";
+      }
+    });
+
+    yesBtn.addEventListener("click", () => {
+      container.innerHTML = `
+        <img 
+          src="https://gifdb.com/images/high/i-knew-it-423-x-498-gif-4vu20gf60jni1ion.gif"
+          alt="I knew it meme"
+          style="max-width:95vw; max-height:95vh;"
+        >
+      `;
+    });
+  </script>
+
+</body>
+</html> -->
