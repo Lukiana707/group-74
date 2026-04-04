@@ -1,0 +1,15 @@
+.child{
+    width: 100px;
+    height: 100px;
+    color: rgb(252, 252, 252);
+    background-color: rgb(255, 0, 0);
+    margin-bottom: 80px;
+}
+
+#parent {
+    display: flex;
+    gap: 5px;
+    padding: 30px;
+    flex-direction: column;
+
+}
