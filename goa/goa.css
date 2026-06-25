@@ -1,0 +1,449 @@
+
+
+@import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,opsz,wght@0,18..144,300..900;1,18..144,300..900&display=swap');
+
+
+
+
+
+
+
+body{
+    background-color: black;
+    margin: 0px;
+}
+
+#goalink1:visited{
+    color: rgb(46, 87, 9);
+    font-size: 30px;
+    
+
+
+} 
+
+#goalink1{
+    color: #a3ce7f;
+    font-size: 20px;
+    text-decoration: none;
+
+    
+}                      
+
+#goalink1:hover{
+    color: rgb(95, 169, 29);
+    font-size: 25px;
+    text-decoration: none;
+
+    
+}
+
+#goalink2:visited{
+    color: rgb(46, 87, 9);
+    font-size: 30px;
+    text-decoration: none;
+
+}
+
+#goalink2{
+    color: #A5CF83;
+    font-size: 20px;
+    justify-content: center;
+    text-decoration: none;
+}
+
+#goalink2:hover{
+    color: rgb(95, 169, 29);
+    font-size: 25px;
+    text-decoration: none;
+}
+
+
+#goalink3:visited{
+    color: rgb(46, 87, 9);
+    font-size: 30px;
+    text-decoration: none;
+
+}
+
+#goalink3{
+    color: #A5CF83;
+    font-size: 20px;
+    justify-content: center;
+    text-decoration: none;
+
+    
+}
+
+#goalink3:hover{
+    color: rgb(95, 169, 29);
+    font-size: 25px;
+    text-decoration: none;
+}
+
+
+
+.goaslinks{
+    justify-content: center;
+    display: grid;
+    text-decoration: none;
+
+    
+}
+
+.r{
+    color: #00ff66;
+    font-size: 20px;
+    text-decoration: none;
+    
+}
+
+.h{
+    color: #00ff66;
+    font-size: 20px;
+    text-decoration: none;
+}
+
+#r{
+    color: #00ff66;
+    font-size: 20px;
+    text-decoration: none;
+}
+
+.a{
+    color: #00ff66;
+    font-size: 20px;
+    text-decoration: none;
+}
+
+
+
+
+#caca{
+    font-family: Bungee;                        
+    color: #ffffff;
+    
+    
+    
+
+    
+}
+
+
+#LONG{
+    width: 230px;
+    height: 190px;
+}
+
+
+
+
+
+#divv{
+    background-color: rgb(43, 42, 42);
+    width: 1520px;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 19px;
+    gap: 10px;
+    
+    
+}
+
+
+
+
+
+h2{
+    color: #ffffff;
+}
+
+h3{
+    color: rgb(252, 255, 252);
+    font-family: Merriweather;
+    font-size: 27px;
+
+
+}
+
+
+
+
+#logoforgoa{
+    border-radius: 120px;
+    width: 46px;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    padding: 4px;
+    margin-top: -3px;
+}
+
+
+
+.background{
+    width: 1520px;
+
+}
+
+
+.class{
+    font-family: Bungee;                        
+    color: #ffffff;
+    margin-top: -660px;
+    
+}
+
+
+#button-forgoa {
+    width: 200px;
+    height: 150px;
+    background-color: #045b14;
+    border-radius: 40px;
+    margin-left: 80px ;
+    border: #045b14;
+    margin-top: 140px;
+    margin-right: 880px;
+    
+}
+
+
+#button-forgoa:hover{
+    background-color: #1f8509;
+    width: 210px;
+    height: 180px;
+    
+}
+
+
+#goaisthebest{
+    color: #a3ce7f;
+}
+
+
+#button-forgoa2 {
+    width: 200px;
+    height: 150px;
+    background-color: #045b14;
+    border-radius: 40px;
+    margin-left: 80px ;
+    border: #045b14;
+    margin-top: 140px;
+    
+    
+    
+}
+
+
+#button-forgoa2:hover{
+    background-color: #1f8509;
+    width: 210px;
+    height: 180px;
+    
+}
+
+
+#goaisthebest{
+    color: #ffffff;
+}
+
+
+#divvv{
+    background-color: rgb(43, 42, 42);
+    width: 1520px;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 19px;
+    gap: 10px;
+    
+
+    
+}
+
+
+#logoforgoa2{
+    border-radius: 120px;
+    width: 46px;
+    margin-left: 20px;
+    margin-bottom: 10px;
+    padding: 4px;
+    margin-top: -3px;
+
+}
+
+
+
+
+
+
+
+#idaa{
+    width: 140px;
+    padding: 30px;
+    margin-top: 50px; 
+    border-radius: 15px;
+    justify-content: center;
+    background-color: #045b14;
+    margin-left: 550px;
+    position: absolute;
+    height: 110px;
+    color:#ffffff;
+    margin-left: 500px;
+
+
+    
+}
+
+#background2{
+    width: 1520px;
+
+}
+
+
+
+#background3{
+    width: 1520px;
+}
+
+
+#imageforcenter{
+    margin-left: 550px;
+    justify-content: center;
+    width: 400px;
+    height: 300px;
+    margin-top: -270px;
+}
+
+
+.classformoving{
+    justify-content: center;
+    margin-right: 0px;
+}
+
+.moving{
+    margin-right: 1210px;
+    padding-bottom: 10px;
+}
+
+
+#idaaa{
+    width: 140px;
+    padding: 30px;
+    margin-top: 50px; 
+    border-radius: 15px;
+    justify-content: center;
+    background-color: #045b14;
+    margin-left: 550px;
+    position: absolute;
+    height: 110px;
+    color:#ffffff;
+    margin-left: 800px;
+
+    
+
+
+    
+}
+
+#idaaaa{
+    width: 140px;
+    padding: 30px;
+    margin-top: 300px; 
+    border-radius: 15px;
+    justify-content: center;
+    background-color: #045b14;
+    margin-left: 500px;
+    position: absolute;
+    height: 110px;
+    color:#ffffff; 
+
+    
+
+
+    
+}
+
+#idaaaaa{
+    width: 140px;
+    padding: 30px;
+    margin-top: 300px; 
+    border-radius: 15px;
+    justify-content: center;
+    background-color: #045b14;
+    margin-left: 800px;
+    position: absolute;
+    height: 110px;
+    color:#ffffff;
+
+
+}
+
+
+#imageforabout{
+    margin-left: 70px;
+    
+}
+
+#imageforabout2{
+    margin-left: 800px;
+}
+
+
+#box{
+    width: 220px;
+    padding: 15px;
+    background: rgb(0, 0, 0);
+    border-radius: 10px;
+    margin-top: 50px;
+    margin-left: 600px;
+    color: white;
+    font-size: 25px;
+    
+}
+
+
+.boxforcoloring{
+    width: 300px;
+    height: 35px;
+    background-color: black;
+    border: 1px solid #00ff66;
+    color: white;
+    font-size: 16px;
+    margin-bottom: 10px;
+    
+}
+
+#sendbutton{
+    width: 150px;
+    height: 40px;
+    margin-top: 10px;
+    margin-left: 80px;
+    background-color: #00ff66;
+    border: 2px solid #00ff66;
+    color: white;
+    font-size: 24px;
+    
+}
+
+
+
+/* i'll try to explain the whole code in here so at the start i have fonts i have downloaded from google 
+fonts next a have the margins which is like an item geting seperated by the wall or by another item like a box,fonts 
+sizes are making a text that you have to the size you like u want it to be small you can do like 10px or 15px,color is changing 
+a color of an item its likely for texts and also background color is also for the amost same reason
+but its for the background like a box that has a word in it that is colored red but the box is white so you add background color and you put 
+it to blue and now you have a text that has a blue background but with a red text, now its height and width so they are for the width and the height
+if you put the width as 100px and height to 20px it would be long but not really tall ,and about the fonts font family is used for changing a font 
+of a text so like the text is hello and its normal but when you change it to like Arial and or a font from google fonts then it will change to that,border radius
+is for making the corners of an item rounder like an egg,justify content is for making an item go some as i used center so an item goes to the middle like the center,
+gap is for making space inbetween of items like only two and if you add gap the middle of the two items with seperate but only if you add alot of px's but if not it 
+wont really show but it might a little bit, padding is making space inside of an item so it would be clear like a box that is small but an item is inside of it like a text a the text is
+touching the walls so then you add padding 30px and the item has more space inside it, then text deco so its for removing any deco on a item like an underline,a hover is when you bring your mouse
+chose to a text or an item and it changes for how long you have your mouse on it like an item was red and then when you bring your mouse it turns blue and when
+you remove your mouse it turns back to red then you bring it back its blue then again and again, a visted is when there is a link and when you click on it and it brings you to a site then after you come back 
+to see the link has turned a diffrent color like it was red untill you clicked it and after it turns blue so that means you have 
+already been there and thats good because when you have millons of links an dyou go in one and go out you wont really undersatnd which one you have been in already so then you might go in the same one so 
+thats why there is visted so you dont forget which link you already have been in, a border is a line like around an item like a box and you put border: 4px solid red so now its gonna have a line around it that is red and 4px wide   */
+

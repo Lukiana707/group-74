@@ -1,0 +1,48 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: rgb(40, 39, 39); /* moves the gray background here */
+}
+
+#div1 {  
+    background-color: rgba(0, 0, 0, 0.551);
+    margin-top: 10px;
+    
+    /* These two lines center the square horizontally */
+    margin-left: auto;
+    margin-right: auto;
+    
+    height: 1200px;
+    width: 700px;
+    
+    /* this centers the text inside the black box */
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+
+}
+
+#p1 { 
+    color: rgb(34, 126, 34);
+    font-size: 40px; /* Makes the title text larger */
+    margin-top: -1100px;
+    margin-left: 300px;
+}
+
+#p1:hover { /* this is a hover its when you move your mouse and it turns 
+    a diffrent color after you remove your mouse it turns back to the same color */
+    color: rgb(0, 255, 0);
+}
+
+
+#p2{
+    color: #79AE6F;
+    width: 200px;
+    margin-right: 500px;
+    margin-top: 400px;
+}
+
+

@@ -1,0 +1,25 @@
+#div1 {
+    Width: 120px;
+    Height:  120px;
+    Background-color: blue;
+    position: relative;
+    left: 50px;
+    top: 30px;
+    width: 300px;
+    height: 300px;
+    background-color: rgb(195, 190, 190);
+    
+    }
+
+
+
+/* 30px down
+50px to the right
+Create a large div:
+Width — 300px
+Height — 300px
+Background color — light gray */
+
+Width — 70px
+Height — 70px
+Background color — red
